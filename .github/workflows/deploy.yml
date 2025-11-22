@@ -45,7 +45,7 @@ jobs:
           name: codecov-umbrella
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: false
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.CODECOV_TOKEN != ''
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         continue-on-error: true
 
   build:
