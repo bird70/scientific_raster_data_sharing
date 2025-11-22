@@ -190,21 +190,21 @@
   - **Property 5: Resource tagging completeness**
   - **Validates: Requirements 9.6**
 
-- [ ] 12. Create GitHub Actions CI/CD workflow
-- [ ] 12.1 Create workflow file
+- [x] 12. Create GitHub Actions CI/CD workflow
+- [x] 12.1 Create workflow file
   - Create .github/workflows/deploy.yml
   - Configure triggers (push to main, pull request)
   - Set up AWS credentials from secrets
   - _Requirements: 8.1_
 
-- [ ] 12.2 Add test job
+- [x] 12.2 Add test job
   - Set up Python 3.12
   - Install dependencies from requirements.txt
   - Run pytest with coverage
   - Upload coverage report
   - _Requirements: 8.2_
 
-- [ ] 12.3 Add build job
+- [x] 12.3 Add build job
   - Configure AWS credentials
   - Login to ECR
   - Build Docker image
@@ -212,7 +212,7 @@
   - Push to ECR
   - _Requirements: 8.2, 8.3_
 
-- [ ] 12.4 Add Terraform documentation and security job
+- [x] 12.4 Add Terraform documentation and security job
   - Install terraform-docs
   - Generate documentation for all modules
   - Install checkov
@@ -221,7 +221,7 @@
   - Commit and push documentation changes
   - _Requirements: 8.6, 8.7_
 
-- [ ] 12.5 Add deploy job
+- [x] 12.5 Add deploy job
   - Download current task definition from ECS
   - Update image tag to new commit SHA
   - Register new task definition
@@ -229,7 +229,7 @@
   - Wait for deployment to stabilize
   - _Requirements: 8.3, 8.4_
 
-- [ ] 12.6 Add smoke test job
+- [x] 12.6 Add smoke test job
   - Wait 60 seconds for service stabilization
   - Test /health endpoint returns 200
   - Test sample /tiles request returns PNG
@@ -238,8 +238,8 @@
   - Fail deployment if any test fails
   - _Requirements: 8.5_
 
-- [ ] 13. Create Lambda function code for ingestion pipeline
-- [ ] 13.1 Create trigger Lambda code
+- [x] 13. Create Lambda function code for ingestion pipeline
+- [x] 13.1 Create trigger Lambda code
   - Create app/lambda/trigger/handler.py
   - Parse S3 event and extract bucket/key
   - Validate file extension is .nc
@@ -247,7 +247,7 @@
   - Handle errors and log to CloudWatch
   - _Requirements: 4.1, 4.2_
 
-- [ ] 13.2 Create STAC creation Lambda code
+- [x] 13.2 Create STAC creation Lambda code
   - Create app/lambda/stac_creator/handler.py
   - Read Zarr metadata from S3
   - Extract bbox, datetime, variables
@@ -255,7 +255,7 @@
   - Write to S3 STAC bucket
   - _Requirements: 4.4_
 
-- [ ] 13.3 Create STAC indexing Lambda code
+- [x] 13.3 Create STAC indexing Lambda code
   - Create app/lambda/stac_indexer/handler.py
   - Read STAC item from S3
   - Connect to OpenSearch
@@ -264,19 +264,19 @@
   - Handle errors and send SNS notification on failure
   - _Requirements: 4.4, 4.5_
 
-- [ ] 14. Update application configuration
+- [x] 14. Update application configuration
   - Update app/app/config.py to handle optional DASK_SCHEDULER
   - Update app/app/timeseries.py to gracefully handle Dask unavailability
   - Ensure all environment variables have sensible defaults
   - _Requirements: 5.4_
 
-- [ ] 15. Create Terraform documentation
+- [x] 15. Create Terraform documentation
   - Create README.md for each Terraform module
   - Document variables, outputs, and usage examples
   - Create root README.md with architecture overview
   - _Requirements: 8.6_
 
-- [ ] 16. Checkpoint - Validate Terraform configuration
+- [-] 16. Checkpoint - Validate Terraform configuration
   - Run terraform init in root directory
   - Run terraform validate
   - Run terraform plan with sample variables

@@ -7,7 +7,6 @@ import s3fs
 import numpy as np
 import asyncio
 from tenacity import retry, stop_after_attempt, wait_exponential
-from dask.distributed import Client, default_client
 import logging
 import hashlib
 import json
@@ -15,18 +14,51 @@ import json
 router = APIRouter()
 logger = logging.getLogger("timeseries")
 
+# Track Dask availability
+_dask_available = False
+_dask_client = None
+
+try:
+    from dask.distributed import Client
+    _dask_available = True
+except ImportError:
+    logger.warning("Dask not available - will use local processing only")
+
 @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=0.5))
 def open_zarr_mapper(zarr_href: str):
     fs = s3fs.S3FileSystem(anon=False)
     return fs.get_mapper(zarr_href.replace("s3://", ""))
 
 async def ensure_dask_client():
-    if settings.DASK_SCHEDULER:
-        try:
-            return Client(settings.DASK_SCHEDULER, timeout="5s")
-        except Exception as e:
-            logger.warning("Dask scheduler connect failed, using local")
-    return None
+    """
+    Attempt to connect to Dask scheduler if configured.
+    Returns None if Dask is unavailable or connection fails.
+    Processing will fall back to local execution.
+    """
+    global _dask_client
+    
+    # Return existing client if available
+    if _dask_client is not None:
+        return _dask_client
+    
+    # Check if Dask is available and configured
+    if not _dask_available:
+        logger.info("Dask library not available - using local processing")
+        return None
+    
+    if not settings.DASK_SCHEDULER:
+        logger.info("DASK_SCHEDULER not configured - using local processing")
+        return None
+    
+    # Attempt to connect to Dask scheduler
+    try:
+        logger.info(f"Attempting to connect to Dask scheduler at {settings.DASK_SCHEDULER}")
+        _dask_client = Client(settings.DASK_SCHEDULER, timeout="5s")
+        logger.info("Successfully connected to Dask scheduler")
+        return _dask_client
+    except Exception as e:
+        logger.warning(f"Failed to connect to Dask scheduler: {e}. Using local processing.")
+        return None
 
 def _make_cache_key(lon, lat, start, end, variable):
     key = f"ts:{variable}:{lon:.6f}:{lat:.6f}:{start}:{end}"
@@ -45,30 +77,49 @@ async def timeseries(lon: float = Query(...), lat: float = Query(...),
     if not hits:
         return {"times": [], "values": []}
 
+    # Attempt to connect to Dask scheduler if available
+    # If Dask is unavailable, processing will fall back to local execution
     dask_client = await ensure_dask_client()
+    if dask_client:
+        logger.info(f"Processing {len(hits)} hits with Dask distributed computing")
+    else:
+        logger.info(f"Processing {len(hits)} hits with local execution")
 
     async def read_hit(hit):
         href = hit["_source"]["assets"]["zarr"]["href"]
-        mapper = open_zarr_mapper(href)
-        ds = xr.open_zarr(mapper, consolidated=True)
-        # assumes dimensions named 'time' and coords 'lon','lat' or 'x','y' — adjust per dataset
         try:
-            sel = ds[variable].sel(longitude=lon, latitude=lat, method="nearest")
-        except Exception:
-            # try alternate names
-            sel = ds[variable].sel(x=lon, y=lat, method="nearest")
-        times = sel["time"].values
-        values = sel.values
-        return list(map(str, times)), list(map(float, np.array(values).tolist()))
+            mapper = open_zarr_mapper(href)
+            ds = xr.open_zarr(mapper, consolidated=True)
+            # assumes dimensions named 'time' and coords 'lon','lat' or 'x','y' — adjust per dataset
+            try:
+                sel = ds[variable].sel(longitude=lon, latitude=lat, method="nearest")
+            except Exception:
+                # try alternate names
+                sel = ds[variable].sel(x=lon, y=lat, method="nearest")
+            times = sel["time"].values
+            values = sel.values
+            return list(map(str, times)), list(map(float, np.array(values).tolist()))
+        except Exception as e:
+            logger.error(f"Error reading hit from {href}: {e}")
+            return [], []
 
+    # Process hits concurrently using asyncio executor
+    # This works with or without Dask - if Dask is available, xarray operations
+    # within read_hit will use Dask for chunked array operations
     loop = asyncio.get_event_loop()
     tasks = [loop.run_in_executor(None, lambda h=hit: read_hit(h)) for hit in hits]
-    results = await asyncio.gather(*tasks)
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    
     times = []
     values = []
-    for t_list, v_list in results:
+    for result in results:
+        if isinstance(result, Exception):
+            logger.error(f"Error processing hit: {result}")
+            continue
+        t_list, v_list = result
         times.extend(t_list)
         values.extend(v_list)
+    
     # sort and return
     pairs = sorted(zip(times, values), key=lambda p: p[0])
     if pairs:

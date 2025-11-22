@@ -1,0 +1,334 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  AWS_REGION: ap-southeast-2
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r app/requirements.txt
+      
+      - name: Run pytest with coverage
+        run: |
+          cd app
+          pytest tests/ --cov=app --cov-report=xml --cov-report=term
+      
+      - name: Upload coverage report
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./app/coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+        if: always()
+
+  build:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      
+      - name: Extract metadata for Docker
+        id: meta
+        run: |
+          echo "tags=${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}" >> $GITHUB_OUTPUT
+          echo "latest=${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:latest" >> $GITHUB_OUTPUT
+      
+      - name: Build Docker image
+        run: |
+          cd app
+          docker build -t ${{ steps.meta.outputs.tags }} -t ${{ steps.meta.outputs.latest }} .
+      
+      - name: Push Docker image to ECR
+        run: |
+          docker push ${{ steps.meta.outputs.tags }}
+          docker push ${{ steps.meta.outputs.latest }}
+
+  terraform-docs-security:
+    name: Terraform Documentation and Security
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Install terraform-docs
+        run: |
+          wget https://github.com/terraform-docs/terraform-docs/releases/download/v0.17.0/terraform-docs-v0.17.0-linux-amd64.tar.gz
+          tar -xzf terraform-docs-v0.17.0-linux-amd64.tar.gz
+          chmod +x terraform-docs
+          sudo mv terraform-docs /usr/local/bin/
+      
+      - name: Generate documentation for root module
+        run: |
+          cd terraform
+          terraform-docs markdown table --output-file README.md --output-mode inject .
+      
+      - name: Generate documentation for network module
+        run: |
+          cd terraform/modules/network
+          terraform-docs markdown table --output-file README.md --output-mode inject .
+      
+      - name: Generate documentation for IAM module
+        run: |
+          cd terraform/modules/iam
+          terraform-docs markdown table --output-file README.md --output-mode inject .
+      
+      - name: Generate documentation for data module
+        run: |
+          cd terraform/modules/data
+          terraform-docs markdown table --output-file README.md --output-mode inject .
+      
+      - name: Generate documentation for ECS module
+        run: |
+          cd terraform/modules/ecs
+          terraform-docs markdown table --output-file README.md --output-mode inject .
+      
+      - name: Generate documentation for CloudFront module
+        run: |
+          cd terraform/modules/cloudfront
+          terraform-docs markdown table --output-file README.md --output-mode inject .
+      
+      - name: Generate documentation for ingestion module
+        run: |
+          cd terraform/modules/ingestion
+          terraform-docs markdown table --output-file README.md --output-mode inject .
+      
+      - name: Generate documentation for monitoring module
+        run: |
+          cd terraform/modules/monitoring
+          terraform-docs markdown table --output-file README.md --output-mode inject .
+      
+      - name: Install checkov
+        run: |
+          pip install checkov
+      
+      - name: Run checkov security scan
+        run: |
+          checkov --directory terraform --framework terraform --output cli --soft-fail
+          checkov --directory terraform --framework terraform --output json --output-file checkov-report.json
+      
+      - name: Check for critical security issues
+        run: |
+          CRITICAL_COUNT=$(jq '[.results.failed_checks[] | select(.check_class == "checkov.terraform.checks" and (.severity == "CRITICAL" or .severity == "HIGH"))] | length' checkov-report.json)
+          echo "Critical/High severity issues found: $CRITICAL_COUNT"
+          if [ "$CRITICAL_COUNT" -gt 0 ]; then
+            echo "❌ Critical or high severity security issues found!"
+            jq '[.results.failed_checks[] | select(.check_class == "checkov.terraform.checks" and (.severity == "CRITICAL" or .severity == "HIGH"))]' checkov-report.json
+            exit 1
+          fi
+          echo "✅ No critical security issues found"
+      
+      - name: Commit and push documentation changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add terraform/**/README.md
+          if git diff --staged --quiet; then
+            echo "No documentation changes to commit"
+          else
+            git commit -m "docs: update Terraform module documentation [skip ci]"
+            git push
+          fi
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+  deploy:
+    name: Deploy to ECS
+    runs-on: ubuntu-latest
+    needs: [build, terraform-docs-security]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      
+      - name: Download tiles service task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ secrets.ECS_TASK_DEFINITION_TILES }} \
+            --query taskDefinition > tiles-task-definition.json
+      
+      - name: Update tiles task definition with new image
+        id: tiles-task-def
+        run: |
+          NEW_IMAGE="${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}"
+          cat tiles-task-definition.json | \
+            jq --arg IMAGE "$NEW_IMAGE" '.containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' > tiles-task-definition-new.json
+          echo "task-definition=tiles-task-definition-new.json" >> $GITHUB_OUTPUT
+      
+      - name: Register new tiles task definition
+        run: |
+          aws ecs register-task-definition \
+            --cli-input-json file://tiles-task-definition-new.json
+      
+      - name: Update tiles ECS service
+        run: |
+          aws ecs update-service \
+            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --service ${{ secrets.ECS_SERVICE_TILES }} \
+            --task-definition ${{ secrets.ECS_TASK_DEFINITION_TILES }} \
+            --force-new-deployment
+      
+      - name: Download timeseries service task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ secrets.ECS_TASK_DEFINITION_TIMESERIES }} \
+            --query taskDefinition > timeseries-task-definition.json
+      
+      - name: Update timeseries task definition with new image
+        id: timeseries-task-def
+        run: |
+          NEW_IMAGE="${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}"
+          cat timeseries-task-definition.json | \
+            jq --arg IMAGE "$NEW_IMAGE" '.containerDefinitions[0].image = $IMAGE | del(.taskDefinitionArn, .revision, .status, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)' > timeseries-task-definition-new.json
+          echo "task-definition=timeseries-task-definition-new.json" >> $GITHUB_OUTPUT
+      
+      - name: Register new timeseries task definition
+        run: |
+          aws ecs register-task-definition \
+            --cli-input-json file://timeseries-task-definition-new.json
+      
+      - name: Update timeseries ECS service
+        run: |
+          aws ecs update-service \
+            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --service ${{ secrets.ECS_SERVICE_TIMESERIES }} \
+            --task-definition ${{ secrets.ECS_TASK_DEFINITION_TIMESERIES }} \
+            --force-new-deployment
+      
+      - name: Wait for tiles service deployment to stabilize
+        run: |
+          aws ecs wait services-stable \
+            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --services ${{ secrets.ECS_SERVICE_TILES }}
+      
+      - name: Wait for timeseries service deployment to stabilize
+        run: |
+          aws ecs wait services-stable \
+            --cluster ${{ secrets.ECS_CLUSTER }} \
+            --services ${{ secrets.ECS_SERVICE_TIMESERIES }}
+
+  smoke-tests:
+    name: Run Smoke Tests
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+      - name: Wait for service stabilization
+        run: sleep 60
+      
+      - name: Test health endpoint
+        run: |
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" ${{ secrets.ALB_URL }}/health)
+          if [ "$RESPONSE" != "200" ]; then
+            echo "❌ Health check failed with status code: $RESPONSE"
+            exit 1
+          fi
+          echo "✅ Health check passed"
+      
+      - name: Test tiles endpoint
+        run: |
+          RESPONSE=$(curl -s -o /tmp/tile.png -w "%{http_code}" "${{ secrets.ALB_URL }}/tiles/test-collection/10/512/512.png")
+          if [ "$RESPONSE" != "200" ]; then
+            echo "❌ Tiles endpoint failed with status code: $RESPONSE"
+            exit 1
+          fi
+          FILE_TYPE=$(file -b --mime-type /tmp/tile.png)
+          if [ "$FILE_TYPE" != "image/png" ]; then
+            echo "❌ Tiles endpoint did not return a PNG image (got: $FILE_TYPE)"
+            exit 1
+          fi
+          echo "✅ Tiles endpoint passed"
+      
+      - name: Test timeseries endpoint
+        run: |
+          RESPONSE=$(curl -s -w "\n%{http_code}" "${{ secrets.ALB_URL }}/api/timeseries?lon=150&lat=-33&start=2024-01-01T00:00:00Z&end=2024-01-31T23:59:59Z&variable=temp")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+          
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ Timeseries endpoint failed with status code: $HTTP_CODE"
+            exit 1
+          fi
+          
+          if ! echo "$BODY" | jq empty 2>/dev/null; then
+            echo "❌ Timeseries endpoint did not return valid JSON"
+            exit 1
+          fi
+          echo "✅ Timeseries endpoint passed"
+      
+      - name: Test metrics endpoint
+        run: |
+          RESPONSE=$(curl -s -w "\n%{http_code}" "${{ secrets.ALB_URL }}/metrics")
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | head -n-1)
+          
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ Metrics endpoint failed with status code: $HTTP_CODE"
+            exit 1
+          fi
+          
+          if ! echo "$BODY" | grep -q "^# HELP"; then
+            echo "❌ Metrics endpoint did not return Prometheus format"
+            exit 1
+          fi
+          echo "✅ Metrics endpoint passed"
+      
+      - name: All smoke tests passed
+        run: echo "🎉 All smoke tests passed successfully!"

@@ -1,15 +1,29 @@
 from pydantic import BaseSettings, AnyHttpUrl
+from typing import Optional
 
 class Settings(BaseSettings):
+    # AWS Configuration
     AWS_REGION: str = "ap-southeast-2"
-    S3_ZARR_PREFIX: str
-    S3_COG_PREFIX: str
-    OPENSEARCH_HOST: str
+    
+    # S3 Configuration - required for data access
+    S3_ZARR_PREFIX: str = ""
+    S3_COG_PREFIX: str = ""
+    
+    # OpenSearch Configuration - required for STAC catalog
+    OPENSEARCH_HOST: str = ""
     OPENSEARCH_INDEX: str = "stac"
-    REDIS_URL: str
-    COGNITO_JWKS_URL: str
-    COGNITO_USERPOOL_AUD: str
-    DASK_SCHEDULER: str | None = None
+    
+    # Redis Configuration - required for caching
+    REDIS_URL: str = "redis://localhost:6379"
+    
+    # Cognito Configuration - required for authentication
+    COGNITO_JWKS_URL: str = ""
+    COGNITO_USERPOOL_AUD: str = ""
+    
+    # Dask Configuration - optional for distributed processing
+    DASK_SCHEDULER: Optional[str] = None
+    
+    # Logging Configuration
     LOG_LEVEL: str = "INFO"
 
     class Config:
