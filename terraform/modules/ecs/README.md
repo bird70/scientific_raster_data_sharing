@@ -218,3 +218,109 @@ module "ecs" {
 - Requirements 7.1: CloudWatch log groups
 - Requirements 9.1-9.2: Module variables and outputs
 - Requirements 9.6: Resource tagging
+
+<!-- BEGIN_TF_DOCS -->
+## Requirements
+
+No requirements.
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.22.1 |
+
+## Modules
+
+No modules.
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [aws_appautoscaling_policy.dask_workers_cpu](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appautoscaling_policy) | resource |
+| [aws_appautoscaling_policy.tiles_cpu](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appautoscaling_policy) | resource |
+| [aws_appautoscaling_policy.timeseries_cpu](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appautoscaling_policy) | resource |
+| [aws_appautoscaling_target.dask_workers](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appautoscaling_target) | resource |
+| [aws_appautoscaling_target.tiles](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appautoscaling_target) | resource |
+| [aws_appautoscaling_target.timeseries](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/appautoscaling_target) | resource |
+| [aws_cloudwatch_log_group.dask_scheduler](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
+| [aws_cloudwatch_log_group.dask_workers](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
+| [aws_cloudwatch_log_group.tiles](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
+| [aws_cloudwatch_log_group.timeseries](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
+| [aws_ecr_repository.repo](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_repository) | resource |
+| [aws_ecs_cluster.this](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_cluster) | resource |
+| [aws_ecs_service.dask_scheduler](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
+| [aws_ecs_service.dask_workers](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
+| [aws_ecs_service.tiles](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
+| [aws_ecs_service.timeseries](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
+| [aws_ecs_task_definition.dask_scheduler](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
+| [aws_ecs_task_definition.dask_workers](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
+| [aws_ecs_task_definition.tiles](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
+| [aws_ecs_task_definition.timeseries](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
+| [aws_lb.alb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb) | resource |
+| [aws_lb_listener.http](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener) | resource |
+| [aws_lb_listener.https](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener) | resource |
+| [aws_lb_listener_rule.health_rule_http](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener_rule) | resource |
+| [aws_lb_listener_rule.health_rule_https](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener_rule) | resource |
+| [aws_lb_listener_rule.tiles_rule_http](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener_rule) | resource |
+| [aws_lb_listener_rule.tiles_rule_https](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener_rule) | resource |
+| [aws_lb_listener_rule.timeseries_rule_http](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener_rule) | resource |
+| [aws_lb_listener_rule.timeseries_rule_https](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener_rule) | resource |
+| [aws_lb_target_group.tiles_tg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group) | resource |
+| [aws_lb_target_group.timeseries_tg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group) | resource |
+| [aws_service_discovery_private_dns_namespace.dask](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_private_dns_namespace) | resource |
+| [aws_service_discovery_service.dask_scheduler](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/service_discovery_service) | resource |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_alb_sg_id"></a> [alb\_sg\_id](#input\_alb\_sg\_id) | n/a | `string` | `""` | no |
+| <a name="input_aws_region"></a> [aws\_region](#input\_aws\_region) | AWS region | `string` | `"ap-southeast-2"` | no |
+| <a name="input_certificate_arn"></a> [certificate\_arn](#input\_certificate\_arn) | n/a | `string` | `""` | no |
+| <a name="input_cognito_client_id"></a> [cognito\_client\_id](#input\_cognito\_client\_id) | Cognito user pool client ID | `string` | n/a | yes |
+| <a name="input_cognito_user_pool_id"></a> [cognito\_user\_pool\_id](#input\_cognito\_user\_pool\_id) | n/a | `string` | n/a | yes |
+| <a name="input_dask_scheduler_endpoint"></a> [dask\_scheduler\_endpoint](#input\_dask\_scheduler\_endpoint) | Dask scheduler endpoint | `string` | `""` | no |
+| <a name="input_dask_sg_id"></a> [dask\_sg\_id](#input\_dask\_sg\_id) | Security group ID for Dask cluster | `string` | `""` | no |
+| <a name="input_dask_workers_desired_count"></a> [dask\_workers\_desired\_count](#input\_dask\_workers\_desired\_count) | Desired number of Dask worker tasks | `number` | `2` | no |
+| <a name="input_ecr_repo_name"></a> [ecr\_repo\_name](#input\_ecr\_repo\_name) | n/a | `string` | n/a | yes |
+| <a name="input_ecs_sg_id"></a> [ecs\_sg\_id](#input\_ecs\_sg\_id) | Security group ID for ECS tasks | `string` | n/a | yes |
+| <a name="input_execution_role_arn"></a> [execution\_role\_arn](#input\_execution\_role\_arn) | ARN of the IAM role for ECS task execution | `string` | n/a | yes |
+| <a name="input_image_uri"></a> [image\_uri](#input\_image\_uri) | URI of the Docker image in ECR | `string` | n/a | yes |
+| <a name="input_name"></a> [name](#input\_name) | n/a | `string` | n/a | yes |
+| <a name="input_opensearch_endpoint"></a> [opensearch\_endpoint](#input\_opensearch\_endpoint) | n/a | `string` | n/a | yes |
+| <a name="input_opensearch_index"></a> [opensearch\_index](#input\_opensearch\_index) | OpenSearch index name | `string` | `"stac"` | no |
+| <a name="input_private_subnets"></a> [private\_subnets](#input\_private\_subnets) | n/a | `list(string)` | n/a | yes |
+| <a name="input_public_subnets"></a> [public\_subnets](#input\_public\_subnets) | n/a | `list(string)` | n/a | yes |
+| <a name="input_redis_endpoint"></a> [redis\_endpoint](#input\_redis\_endpoint) | n/a | `string` | n/a | yes |
+| <a name="input_s3_cog_bucket"></a> [s3\_cog\_bucket](#input\_s3\_cog\_bucket) | S3 bucket name for COG files | `string` | n/a | yes |
+| <a name="input_s3_zarr_bucket"></a> [s3\_zarr\_bucket](#input\_s3\_zarr\_bucket) | n/a | `string` | n/a | yes |
+| <a name="input_tags"></a> [tags](#input\_tags) | Common tags to apply to all resources | `map(string)` | `{}` | no |
+| <a name="input_task_role_arn"></a> [task\_role\_arn](#input\_task\_role\_arn) | ARN of the IAM role for ECS tasks | `string` | n/a | yes |
+| <a name="input_tiles_desired_count"></a> [tiles\_desired\_count](#input\_tiles\_desired\_count) | Desired number of tiles service tasks | `number` | `2` | no |
+| <a name="input_timeseries_desired_count"></a> [timeseries\_desired\_count](#input\_timeseries\_desired\_count) | Desired number of timeseries service tasks | `number` | `2` | no |
+| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | n/a | `string` | n/a | yes |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_alb_arn"></a> [alb\_arn](#output\_alb\_arn) | ARN of the Application Load Balancer |
+| <a name="output_alb_arn_suffix"></a> [alb\_arn\_suffix](#output\_alb\_arn\_suffix) | ARN suffix of the Application Load Balancer for CloudWatch metrics |
+| <a name="output_alb_dns_name"></a> [alb\_dns\_name](#output\_alb\_dns\_name) | DNS name of the Application Load Balancer |
+| <a name="output_cluster_arn"></a> [cluster\_arn](#output\_cluster\_arn) | ARN of the ECS cluster |
+| <a name="output_cluster_name"></a> [cluster\_name](#output\_cluster\_name) | Name of the ECS cluster |
+| <a name="output_dask_scheduler_endpoint"></a> [dask\_scheduler\_endpoint](#output\_dask\_scheduler\_endpoint) | DNS name of the Dask scheduler for service discovery |
+| <a name="output_dask_scheduler_service_arn"></a> [dask\_scheduler\_service\_arn](#output\_dask\_scheduler\_service\_arn) | ARN of the Dask scheduler ECS service |
+| <a name="output_dask_scheduler_service_name"></a> [dask\_scheduler\_service\_name](#output\_dask\_scheduler\_service\_name) | Name of the Dask scheduler ECS service |
+| <a name="output_dask_workers_service_arn"></a> [dask\_workers\_service\_arn](#output\_dask\_workers\_service\_arn) | ARN of the Dask workers ECS service |
+| <a name="output_dask_workers_service_name"></a> [dask\_workers\_service\_name](#output\_dask\_workers\_service\_name) | Name of the Dask workers ECS service |
+| <a name="output_ecr_repository_url"></a> [ecr\_repository\_url](#output\_ecr\_repository\_url) | URL of the ECR repository |
+| <a name="output_tiles_service_arn"></a> [tiles\_service\_arn](#output\_tiles\_service\_arn) | ARN of the tiles ECS service |
+| <a name="output_tiles_service_name"></a> [tiles\_service\_name](#output\_tiles\_service\_name) | Name of the tiles ECS service |
+| <a name="output_tiles_target_group_arn_suffix"></a> [tiles\_target\_group\_arn\_suffix](#output\_tiles\_target\_group\_arn\_suffix) | ARN suffix of the tiles target group for CloudWatch metrics |
+| <a name="output_timeseries_service_arn"></a> [timeseries\_service\_arn](#output\_timeseries\_service\_arn) | ARN of the timeseries ECS service |
+| <a name="output_timeseries_service_name"></a> [timeseries\_service\_name](#output\_timeseries\_service\_name) | Name of the timeseries ECS service |
+| <a name="output_timeseries_target_group_arn_suffix"></a> [timeseries\_target\_group\_arn\_suffix](#output\_timeseries\_target\_group\_arn\_suffix) | ARN suffix of the timeseries target group for CloudWatch metrics |
+<!-- END_TF_DOCS -->
