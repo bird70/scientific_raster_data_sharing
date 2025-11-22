@@ -43,7 +43,10 @@ jobs:
           file: ./app/coverage.xml
           flags: unittests
           name: codecov-umbrella
-        if: always()
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.CODECOV_TOKEN != ''
+        continue-on-error: true
 
   build:
     name: Build and Push Docker Image
