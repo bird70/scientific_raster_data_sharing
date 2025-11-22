@@ -32,6 +32,7 @@ module "network" {
   public_subnet_cidrs  = var.public_subnet_cidrs
   private_subnet_cidrs = var.private_subnet_cidrs
   azs                  = var.azs
+  aws_region           = var.aws_region
   tags                 = local.common_tags
 }
 

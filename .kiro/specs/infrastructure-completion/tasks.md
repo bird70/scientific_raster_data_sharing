@@ -14,7 +14,7 @@
   - Update all module invocations to pass tag variables
   - _Requirements: 9.6_
 
-- [ ] 3. Update network module with tagging and missing resources
+- [x] 3. Update network module with tagging and missing resources
   - Add tag variables to network module variables.tf
   - Apply tags to all network resources (VPC, subnets, security groups, IGW)
   - Add missing ECS tasks security group output
