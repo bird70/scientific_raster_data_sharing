@@ -80,7 +80,7 @@
   - **Property 1: Autoscaling respects capacity bounds**
   - **Validates: Requirements 2.3**
 
-- [ ] 7. Create CloudFront module
+- [x] 7. Create CloudFront module
   - Create terraform/modules/cloudfront directory
   - Create main.tf with CloudFront distribution resource
   - Configure ALB as origin with HTTPS-only
