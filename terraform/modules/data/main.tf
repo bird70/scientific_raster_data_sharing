@@ -15,7 +15,7 @@ resource "random_id" "suffix" {
 resource "aws_s3_bucket" "raw" {
   bucket        = "${var.name}-raw-${random_id.suffix.hex}"
   force_destroy = false
-  tags          = { Name = "${var.name}-raw" }
+  tags          = merge(var.tags, { Name = "${var.name}-raw" })
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "raw" {
@@ -36,10 +36,42 @@ resource "aws_s3_bucket_versioning" "raw" {
   }
 }
 
+resource "aws_s3_bucket_lifecycle_configuration" "raw" {
+  bucket = aws_s3_bucket.raw.id
+
+  rule {
+    id     = "transition-old-versions"
+    status = "Enabled"
+
+    noncurrent_version_transition {
+      noncurrent_days = 30
+      storage_class   = "STANDARD_IA"
+    }
+
+    noncurrent_version_transition {
+      noncurrent_days = 90
+      storage_class   = "GLACIER"
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 365
+    }
+  }
+
+  rule {
+    id     = "abort-incomplete-multipart-uploads"
+    status = "Enabled"
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+}
+
 resource "aws_s3_bucket" "zarr" {
   bucket        = "${var.name}-zarr-${random_id.suffix.hex}"
   force_destroy = false
-  tags          = { Name = "${var.name}-zarr" }
+  tags          = merge(var.tags, { Name = "${var.name}-zarr" })
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "zarr" {
@@ -60,10 +92,42 @@ resource "aws_s3_bucket_versioning" "zarr" {
   }
 }
 
+resource "aws_s3_bucket_lifecycle_configuration" "zarr" {
+  bucket = aws_s3_bucket.zarr.id
+
+  rule {
+    id     = "transition-old-versions"
+    status = "Enabled"
+
+    noncurrent_version_transition {
+      noncurrent_days = 30
+      storage_class   = "STANDARD_IA"
+    }
+
+    noncurrent_version_transition {
+      noncurrent_days = 90
+      storage_class   = "GLACIER"
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 365
+    }
+  }
+
+  rule {
+    id     = "abort-incomplete-multipart-uploads"
+    status = "Enabled"
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+}
+
 resource "aws_s3_bucket" "cog" {
   bucket        = "${var.name}-cog-${random_id.suffix.hex}"
   force_destroy = false
-  tags          = { Name = "${var.name}-cog" }
+  tags          = merge(var.tags, { Name = "${var.name}-cog" })
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "cog" {
@@ -84,10 +148,42 @@ resource "aws_s3_bucket_versioning" "cog" {
   }
 }
 
+resource "aws_s3_bucket_lifecycle_configuration" "cog" {
+  bucket = aws_s3_bucket.cog.id
+
+  rule {
+    id     = "transition-old-versions"
+    status = "Enabled"
+
+    noncurrent_version_transition {
+      noncurrent_days = 30
+      storage_class   = "STANDARD_IA"
+    }
+
+    noncurrent_version_transition {
+      noncurrent_days = 90
+      storage_class   = "GLACIER"
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 365
+    }
+  }
+
+  rule {
+    id     = "abort-incomplete-multipart-uploads"
+    status = "Enabled"
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+}
+
 resource "aws_s3_bucket" "stac" {
   bucket        = "${var.name}-stac-${random_id.suffix.hex}"
   force_destroy = false
-  tags          = { Name = "${var.name}-stac" }
+  tags          = merge(var.tags, { Name = "${var.name}-stac" })
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "stac" {
@@ -108,9 +204,41 @@ resource "aws_s3_bucket_versioning" "stac" {
   }
 }
 
+resource "aws_s3_bucket_lifecycle_configuration" "stac" {
+  bucket = aws_s3_bucket.stac.id
+
+  rule {
+    id     = "transition-old-versions"
+    status = "Enabled"
+
+    noncurrent_version_transition {
+      noncurrent_days = 30
+      storage_class   = "STANDARD_IA"
+    }
+
+    noncurrent_version_transition {
+      noncurrent_days = 90
+      storage_class   = "GLACIER"
+    }
+
+    noncurrent_version_expiration {
+      noncurrent_days = 365
+    }
+  }
+
+  rule {
+    id     = "abort-incomplete-multipart-uploads"
+    status = "Enabled"
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+}
+
 # OpenSearch (managed)
 resource "aws_opensearch_domain" "stac" {
-  domain_name = "${var.name}-stac"
+  domain_name    = "${var.name}-stac"
   engine_version = "OpenSearch_2.8"
   cluster_config {
     instance_type          = "t3.small.search"
@@ -121,12 +249,19 @@ resource "aws_opensearch_domain" "stac" {
     ebs_enabled = true
     volume_size = 20
   }
+  encrypt_at_rest {
+    enabled = true
+  }
+  node_to_node_encryption {
+    enabled = true
+  }
   vpc_options {
-    subnet_ids = var.private_subnets
+    subnet_ids         = var.private_subnets
     security_group_ids = [var.vpc_sg_id]
   }
-  access_policies = data.aws_iam_policy_document.os_access.json
+  access_policies  = data.aws_iam_policy_document.os_access.json
   advanced_options = { "rest.action.multi.allow_explicit_index" = "true" }
+  tags             = merge(var.tags, { Name = "${var.name}-stac" })
 }
 
 data "aws_iam_policy_document" "os_access" {
@@ -147,17 +282,21 @@ data "aws_iam_policy_document" "os_access" {
 
 # ElastiCache Redis (cluster mode disabled)
 resource "aws_elasticache_cluster" "redis" {
-  cluster_id = "${var.name}-redis"
-  engine = "redis"
-  node_type = "cache.t3.small"
-  num_cache_nodes = 1
-  subnet_group_name = aws_elasticache_subnet_group.redis.name
-  security_group_ids = [var.vpc_sg_id]
+  cluster_id                 = "${var.name}-redis"
+  engine                     = "redis"
+  engine_version             = "7.0"
+  node_type                  = "cache.t3.small"
+  num_cache_nodes            = 1
+  subnet_group_name          = aws_elasticache_subnet_group.redis.name
+  security_group_ids         = [var.vpc_sg_id]
+  transit_encryption_enabled = true
+  tags                       = merge(var.tags, { Name = "${var.name}-redis" })
 }
 
 resource "aws_elasticache_subnet_group" "redis" {
-  name = "${var.name}-redis-sg"
+  name       = "${var.name}-redis-sg"
   subnet_ids = var.private_subnets
+  tags       = merge(var.tags, { Name = "${var.name}-redis-subnet-group" })
 }
 
 # Optional RDS Postgres with PostGIS (if enable_rds)
@@ -173,11 +312,14 @@ resource "aws_db_instance" "postgis" {
   skip_final_snapshot    = true
   vpc_security_group_ids = [var.vpc_sg_id]
   db_subnet_group_name   = aws_db_subnet_group.db.name
+  storage_encrypted      = true
+  tags                   = merge(var.tags, { Name = "${var.name}-postgis" })
 }
 
 resource "aws_db_subnet_group" "db" {
-  name = "${var.name}-db-subnets"
+  name       = "${var.name}-db-subnets"
   subnet_ids = var.private_subnets
+  tags       = merge(var.tags, { Name = "${var.name}-db-subnet-group" })
 }
 
 output "s3_raw_bucket_id" { value = aws_s3_bucket.raw.bucket }

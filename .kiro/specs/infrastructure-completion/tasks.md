@@ -30,7 +30,7 @@
   - Apply tags to all IAM roles
   - _Requirements: 4.5, 6.5, 9.6_
 
-- [ ] 5. Update data module with tagging and fixes
+- [x] 5. Update data module with tagging and fixes
   - Add tag variables to data module
   - Apply tags to all S3 buckets, OpenSearch domain, ElastiCache cluster
   - Fix S3 bucket encryption and versioning syntax
