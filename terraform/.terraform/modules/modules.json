@@ -1,0 +1,1 @@
+{"Modules":[{"Key":"","Source":"","Dir":"."},{"Key":"data","Source":"./modules/data","Dir":"modules/data"},{"Key":"ecs","Source":"./modules/ecs","Dir":"modules/ecs"},{"Key":"iam","Source":"./modules/iam","Dir":"modules/iam"},{"Key":"infra","Source":"./modules/infra","Dir":""},{"Key":"network","Source":"./modules/network","Dir":"modules/network"}]}

@@ -5,6 +5,10 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 5.0"
     }
+    random = {
+      source  = "hashicorp/random"
+      version = ">= 3.0"
+    }
   }
 }
 
@@ -34,12 +38,11 @@ module "iam" {
 }
 
 module "data" {
-  source = "./modules/data"
-  name = var.name
-  s3_prefix = var.s3_prefix
-  vpc_id = module.network.vpc_id
-  private_subnets = module.network.private_subnet_ids
-  enable_rds = var.enable_postgis
+  source            = "./modules/data"
+  name              = var.name
+  vpc_sg_id         = module.network.data_security_group_id
+  private_subnets   = module.network.private_subnet_ids
+  enable_rds        = var.enable_postgis
   rds_allocated_storage = var.rds_allocated_storage
 }
 
