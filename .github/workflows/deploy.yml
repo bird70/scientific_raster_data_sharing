@@ -75,8 +75,13 @@ jobs:
       - name: Extract metadata for Docker
         id: meta
         run: |
-          echo "tags=${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}" >> $GITHUB_OUTPUT
-          echo "latest=${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:latest" >> $GITHUB_OUTPUT
+          ECR_REPO="${{ secrets.ECR_REPOSITORY }}"
+          if [ -z "$ECR_REPO" ]; then
+            echo "Error: ECR_REPOSITORY secret is not set"
+            exit 1
+          fi
+          echo "tags=${{ steps.login-ecr.outputs.registry }}/${ECR_REPO}:${{ github.sha }}" >> $GITHUB_OUTPUT
+          echo "latest=${{ steps.login-ecr.outputs.registry }}/${ECR_REPO}:latest" >> $GITHUB_OUTPUT
       
       - name: Build Docker image
         run: |
