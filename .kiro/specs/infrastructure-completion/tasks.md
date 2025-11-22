@@ -38,19 +38,19 @@
   - Fix OpenSearch and ElastiCache security group references
   - _Requirements: 6.4, 9.3, 9.6_
 
-- [ ] 6. Complete ECS module with task definitions and services
-- [ ] 6.1 Add missing variables to ECS module
+- [x] 6. Complete ECS module with task definitions and services
+- [x] 6.1 Add missing variables to ECS module
   - Add variables.tf with all required inputs (task_role_arn, execution_role_arn, image_uri, environment variables, etc.)
   - Add outputs.tf with ALB DNS name, cluster name, service ARNs
   - _Requirements: 9.1, 9.2_
 
-- [ ] 6.2 Create CloudWatch log groups
+- [x] 6.2 Create CloudWatch log groups
   - Add log groups for tiles-service, timeseries-service
   - Set 7-day retention policy
   - Apply tags
   - _Requirements: 7.1, 9.6_
 
-- [ ] 6.3 Create ECS task definitions
+- [x] 6.3 Create ECS task definitions
   - Create task definition for tiles service (1 vCPU, 2GB RAM)
   - Create task definition for timeseries service (2 vCPU, 4GB RAM)
   - Configure container definitions with image URI, port mappings, environment variables
@@ -59,7 +59,7 @@
   - Apply tags
   - _Requirements: 1.1, 1.2, 9.6_
 
-- [ ] 6.4 Create ECS services
+- [x] 6.4 Create ECS services
   - Create tiles service with desired count 2
   - Create timeseries service with desired count 2
   - Configure network (private subnets, security groups)
@@ -69,7 +69,7 @@
   - Apply tags
   - _Requirements: 1.3, 1.4, 9.6_
 
-- [ ] 6.5 Configure autoscaling policies
+- [x] 6.5 Configure autoscaling policies
   - Create autoscaling target for tiles service (min 2, max 10)
   - Create autoscaling target for timeseries service (min 2, max 20)
   - Create target tracking policy for CPU utilization (70% target)
