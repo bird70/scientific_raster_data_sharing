@@ -151,8 +151,8 @@
   - Apply tags
   - _Requirements: 4.5, 9.6_
 
-- [ ] 10. Create monitoring module
-- [ ] 10.1 Create CloudWatch alarms
+- [x] 10. Create monitoring module
+- [x] 10.1 Create CloudWatch alarms
   - Create terraform/modules/monitoring directory
   - Create alarm for high error rate (5xx > 5% for 5 minutes)
   - Create alarm for high latency (p95 > 2s for 5 minutes)
@@ -162,7 +162,7 @@
   - Apply tags
   - _Requirements: 7.4, 9.6_
 
-- [ ] 10.2 Create CloudWatch dashboard
+- [x] 10.2 Create CloudWatch dashboard
   - Create dashboard with widgets for request rate, latency, error rate
   - Add widgets for ECS service health and task counts
   - Add widgets for cache hit ratios

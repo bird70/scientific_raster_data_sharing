@@ -67,3 +67,18 @@ output "dask_workers_service_name" {
   description = "Name of the Dask workers ECS service"
   value       = aws_ecs_service.dask_workers.name
 }
+
+output "tiles_target_group_arn_suffix" {
+  description = "ARN suffix of the tiles target group for CloudWatch metrics"
+  value       = aws_lb_target_group.tiles_tg.arn_suffix
+}
+
+output "timeseries_target_group_arn_suffix" {
+  description = "ARN suffix of the timeseries target group for CloudWatch metrics"
+  value       = aws_lb_target_group.timeseries_tg.arn_suffix
+}
+
+output "alb_arn_suffix" {
+  description = "ARN suffix of the Application Load Balancer for CloudWatch metrics"
+  value       = aws_lb.alb.arn_suffix
+}
