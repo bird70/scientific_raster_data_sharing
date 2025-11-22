@@ -97,8 +97,8 @@
   - **Property 2: HTTPS enforcement**
   - **Validates: Requirements 3.4**
 
-- [ ] 8. Create Dask cluster infrastructure
-- [ ] 8.1 Create Dask task definitions
+- [x] 8. Create Dask cluster infrastructure
+- [x] 8.1 Create Dask task definitions
   - Create task definition for Dask scheduler (1 vCPU, 2GB RAM)
   - Create task definition for Dask workers (2 vCPU, 4GB RAM)
   - Configure environment variables (DASK_SCHEDULER_ADDRESS for workers)
@@ -106,7 +106,7 @@
   - Apply tags
   - _Requirements: 5.1, 9.6_
 
-- [ ] 8.2 Create Dask services
+- [x] 8.2 Create Dask services
   - Create Cloud Map namespace for service discovery
   - Create Dask scheduler service with service discovery
   - Create Dask worker service
@@ -114,7 +114,7 @@
   - Apply tags
   - _Requirements: 5.2, 9.6_
 
-- [ ] 8.3 Configure Dask worker autoscaling
+- [x] 8.3 Configure Dask worker autoscaling
   - Create autoscaling target for workers (min 2, max 10)
   - Create target tracking policy based on CPU utilization
   - _Requirements: 5.3_

@@ -97,3 +97,9 @@ variable "dask_scheduler_endpoint" {
   description = "Dask scheduler endpoint"
   default     = ""
 }
+
+variable "dask_sg_id" {
+  type        = string
+  description = "Security group ID for Dask cluster"
+  default     = ""
+}

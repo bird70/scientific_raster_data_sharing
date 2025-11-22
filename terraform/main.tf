@@ -16,6 +16,8 @@ provider "aws" {
   region = var.aws_region
 }
 
+data "aws_caller_identity" "current" {}
+
 locals {
   common_tags = {
     project_owner = var.project_owner
@@ -60,17 +62,29 @@ module "data" {
 }
 
 module "ecs" {
-  source               = "./modules/ecs"
-  name                 = var.name
-  vpc_id               = module.network.vpc_id
-  public_subnets       = module.network.public_subnet_ids
-  private_subnets      = module.network.private_subnet_ids
-  ecr_repo_name        = "${var.name}-repo"
-  s3_zarr_bucket       = module.data.s3_zarr_bucket_id
-  opensearch_endpoint  = module.data.opensearch_domain_endpoint
-  redis_endpoint       = module.data.redis_primary_endpoint_address
-  cognito_user_pool_id = var.cognito_user_pool_id
-  tags                 = local.common_tags
+  source                  = "./modules/ecs"
+  name                    = var.name
+  vpc_id                  = module.network.vpc_id
+  public_subnets          = module.network.public_subnet_ids
+  private_subnets         = module.network.private_subnet_ids
+  ecr_repo_name           = "${var.name}-repo"
+  s3_zarr_bucket          = module.data.s3_zarr_bucket_id
+  s3_cog_bucket           = module.data.s3_cog_bucket_id
+  opensearch_endpoint     = module.data.opensearch_domain_endpoint
+  opensearch_index        = "stac"
+  redis_endpoint          = module.data.redis_primary_endpoint_address
+  cognito_user_pool_id    = var.cognito_user_pool_id
+  cognito_client_id       = var.cognito_client_id
+  alb_sg_id               = module.network.alb_security_group_id
+  ecs_sg_id               = module.network.ecs_tasks_security_group_id
+  dask_sg_id              = module.network.dask_security_group_id
+  certificate_arn         = var.alb_certificate_arn
+  task_role_arn           = module.iam.ecs_task_role_arn
+  execution_role_arn      = module.iam.ecs_execution_role_arn
+  image_uri               = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.name}-repo:latest"
+  aws_region              = var.aws_region
+  dask_scheduler_endpoint = "scheduler.dask.local"
+  tags                    = local.common_tags
 }
 
 # CloudFront/infra module will be added in task 7

@@ -37,3 +37,33 @@ output "alb_arn" {
   description = "ARN of the Application Load Balancer"
   value       = aws_lb.alb.arn
 }
+
+output "ecr_repository_url" {
+  description = "URL of the ECR repository"
+  value       = aws_ecr_repository.repo.repository_url
+}
+
+output "dask_scheduler_endpoint" {
+  description = "DNS name of the Dask scheduler for service discovery"
+  value       = "scheduler.dask.local"
+}
+
+output "dask_scheduler_service_arn" {
+  description = "ARN of the Dask scheduler ECS service"
+  value       = aws_ecs_service.dask_scheduler.arn
+}
+
+output "dask_workers_service_arn" {
+  description = "ARN of the Dask workers ECS service"
+  value       = aws_ecs_service.dask_workers.arn
+}
+
+output "dask_scheduler_service_name" {
+  description = "Name of the Dask scheduler ECS service"
+  value       = aws_ecs_service.dask_scheduler.name
+}
+
+output "dask_workers_service_name" {
+  description = "Name of the Dask workers ECS service"
+  value       = aws_ecs_service.dask_workers.name
+}
