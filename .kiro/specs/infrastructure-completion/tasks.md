@@ -119,8 +119,8 @@
   - Create target tracking policy based on CPU utilization
   - _Requirements: 5.3_
 
-- [ ] 9. Create ingestion pipeline module
-- [ ] 9.1 Create Lambda functions
+- [x] 9. Create ingestion pipeline module
+- [x] 9.1 Create Lambda functions
   - Create terraform/modules/ingestion directory
   - Create trigger Lambda function (Python 3.12, 256MB, 60s timeout)
   - Create STAC creation Lambda function
@@ -131,21 +131,21 @@
   - Apply tags
   - _Requirements: 4.1, 4.2, 4.4, 9.6_
 
-- [ ] 9.2 Create Step Functions state machine
+- [x] 9.2 Create Step Functions state machine
   - Define state machine with validation, conversion, COG generation, STAC creation, and indexing states
   - Configure error handling and retry logic
   - Assign IAM role
   - Apply tags
   - _Requirements: 4.2, 4.3, 4.5, 9.6_
 
-- [ ] 9.3 Create S3 event notification
+- [x] 9.3 Create S3 event notification
   - Configure S3 bucket notification for raw bucket
   - Set prefix filter to "ingestion/"
   - Set event type to s3:ObjectCreated:*
   - Target trigger Lambda function
   - _Requirements: 4.1_
 
-- [ ] 9.4 Create SNS topic for notifications
+- [x] 9.4 Create SNS topic for notifications
   - Create SNS topic for ingestion failures
   - Configure Step Functions to publish to topic on error
   - Apply tags
