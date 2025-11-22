@@ -22,3 +22,20 @@ variable "cognito_user_pool_id" { type = string, default = "" }
 # Optional overrides for production tuning
 variable "ecs_desired_count_tiles" { type = number, default = 2 }
 variable "ecs_desired_count_timeseries" { type = number, default = 2 }
+
+# Tagging variables
+variable "project_owner" {
+  type        = string
+  description = "Owner of the project for resource tagging"
+}
+
+variable "project_title" {
+  type        = string
+  description = "Title of the project for resource tagging"
+}
+
+variable "environment" {
+  type        = string
+  description = "Environment name (dev, staging, prod)"
+  default     = "dev"
+}

@@ -29,3 +29,9 @@ variable "rds_allocated_storage" {
   type    = number
   default = 100
 }
+
+variable "tags" {
+  type        = map(string)
+  description = "Common tags to apply to all resources"
+  default     = {}
+}

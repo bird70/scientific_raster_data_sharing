@@ -7,7 +7,7 @@
   - Add random provider configuration
   - _Requirements: 10.1, 10.2, 10.3, 10.4_
 
-- [ ] 2. Add Terraform tagging infrastructure
+- [x] 2. Add Terraform tagging infrastructure
   - Add project_owner and project_title variables to root variables.tf
   - Add environment variable to root variables.tf
   - Create locals block in root main.tf to define common tags
