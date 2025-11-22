@@ -9,3 +9,8 @@ enable_postgis       = false
 project_owner = "platform-team"
 project_title = "raster-timeseries-platform"
 environment   = "prod"
+
+# Cost Optimization Settings
+# Reduce from 2 to 1 task per service to save ~$60/month
+ecs_desired_count_tiles      = 1
+ecs_desired_count_timeseries = 1

@@ -52,13 +52,14 @@ module "iam" {
 }
 
 module "data" {
-  source                = "./modules/data"
-  name                  = var.name
-  vpc_sg_id             = module.network.data_security_group_id
-  private_subnets       = module.network.private_subnet_ids
-  enable_rds            = var.enable_postgis
-  rds_allocated_storage = var.rds_allocated_storage
-  tags                  = local.common_tags
+  source                              = "./modules/data"
+  name                                = var.name
+  vpc_sg_id                           = module.network.data_security_group_id
+  private_subnets                     = module.network.private_subnet_ids
+  enable_rds                          = var.enable_postgis
+  rds_allocated_storage               = var.rds_allocated_storage
+  opensearch_service_linked_role_arn  = module.iam.opensearch_service_linked_role_arn
+  tags                                = local.common_tags
 }
 
 module "ecs" {
@@ -81,10 +82,13 @@ module "ecs" {
   certificate_arn         = var.alb_certificate_arn
   task_role_arn           = module.iam.ecs_task_role_arn
   execution_role_arn      = module.iam.ecs_execution_role_arn
-  image_uri               = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.name}-repo:latest"
-  aws_region              = var.aws_region
-  dask_scheduler_endpoint = "scheduler.dask.local"
-  tags                    = local.common_tags
+  image_uri                  = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${var.aws_region}.amazonaws.com/${var.name}-repo:latest"
+  aws_region                 = var.aws_region
+  dask_scheduler_endpoint    = "scheduler.dask.local"
+  tiles_desired_count        = var.ecs_desired_count_tiles
+  timeseries_desired_count   = var.ecs_desired_count_timeseries
+  dask_workers_desired_count = var.ecs_desired_count_tiles  # Reuse tiles count for workers
+  tags                       = local.common_tags
 }
 
 module "cloudfront" {

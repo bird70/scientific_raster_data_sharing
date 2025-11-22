@@ -259,25 +259,10 @@ resource "aws_opensearch_domain" "stac" {
     subnet_ids         = var.private_subnets
     security_group_ids = [var.vpc_sg_id]
   }
-  access_policies  = data.aws_iam_policy_document.os_access.json
   advanced_options = { "rest.action.multi.allow_explicit_index" = "true" }
   tags             = merge(var.tags, { Name = "${var.name}-stac" })
-}
-
-data "aws_iam_policy_document" "os_access" {
-  statement {
-    actions = ["es:*"]
-    principals {
-      type        = "AWS"
-      identifiers = ["*"]
-    }
-    resources = ["*"]
-    condition {
-      test     = "IpAddress"
-      variable = "aws:SourceIp"
-      values   = ["0.0.0.0/0"]
-    }
-  }
+  
+  depends_on = [var.opensearch_service_linked_role_arn]
 }
 
 # ElastiCache Redis (cluster mode disabled)

@@ -1,3 +1,9 @@
+# OpenSearch Service-Linked Role (required for VPC access)
+resource "aws_iam_service_linked_role" "opensearch" {
+  aws_service_name = "es.amazonaws.com"
+  description      = "Service-linked role for Amazon OpenSearch Service"
+}
+
 resource "aws_iam_role" "ecs_task_role" {
   name               = "${var.name}-ecs-task-role"
   assume_role_policy = data.aws_iam_policy_document.ecs_assume_role.json
@@ -208,6 +214,16 @@ data "aws_iam_policy_document" "step_functions_policy" {
     ]
     resources = ["arn:aws:sns:${var.region}:${data.aws_caller_identity.current.account_id}:${var.name}-*"]
   }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "events:PutTargets",
+      "events:PutRule",
+      "events:DescribeRule"
+    ]
+    resources = ["arn:aws:events:${var.region}:${data.aws_caller_identity.current.account_id}:rule/StepFunctionsGetEventsForECSTaskRule"]
+  }
 }
 
 resource "aws_iam_role_policy_attachment" "step_functions_policy" {
@@ -219,3 +235,4 @@ output "ecs_task_role_arn" { value = aws_iam_role.ecs_task_role.arn }
 output "ecs_execution_role_arn" { value = aws_iam_role.ecs_execution_role.arn }
 output "lambda_execution_role_arn" { value = aws_iam_role.lambda_execution_role.arn }
 output "step_functions_execution_role_arn" { value = aws_iam_role.step_functions_execution_role.arn }
+output "opensearch_service_linked_role_arn" { value = aws_iam_service_linked_role.opensearch.arn }

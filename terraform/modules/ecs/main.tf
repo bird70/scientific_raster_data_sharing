@@ -14,10 +14,11 @@ resource "aws_lb" "alb" {
 }
 
 resource "aws_lb_target_group" "tiles_tg" {
-  name     = "${var.name}-tiles-tg"
-  port     = 8080
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
+  name        = "${var.name}-tiles-tg"
+  port        = 8080
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
+  target_type = "ip"
 
   health_check {
     path    = "/health"
@@ -28,10 +29,11 @@ resource "aws_lb_target_group" "tiles_tg" {
 }
 
 resource "aws_lb_target_group" "timeseries_tg" {
-  name     = "${var.name}-ts-tg"
-  port     = 8080
-  protocol = "HTTP"
-  vpc_id   = var.vpc_id
+  name        = "${var.name}-ts-tg"
+  port        = 8080
+  protocol    = "HTTP"
+  vpc_id      = var.vpc_id
+  target_type = "ip"
 
   health_check {
     path    = "/health"
@@ -402,7 +404,7 @@ resource "aws_ecs_service" "tiles" {
   name            = "tiles-service"
   cluster         = aws_ecs_cluster.this.id
   task_definition = aws_ecs_task_definition.tiles.arn
-  desired_count   = 2
+  desired_count   = var.tiles_desired_count
   launch_type     = "FARGATE"
 
   network_configuration {
@@ -432,7 +434,7 @@ resource "aws_ecs_service" "timeseries" {
   name            = "timeseries-service"
   cluster         = aws_ecs_cluster.this.id
   task_definition = aws_ecs_task_definition.timeseries.arn
-  desired_count   = 2
+  desired_count   = var.timeseries_desired_count
   launch_type     = "FARGATE"
 
   network_configuration {
@@ -566,7 +568,7 @@ resource "aws_ecs_service" "dask_workers" {
   name            = "dask-workers"
   cluster         = aws_ecs_cluster.this.id
   task_definition = aws_ecs_task_definition.dask_workers.arn
-  desired_count   = 2
+  desired_count   = var.dask_workers_desired_count
   launch_type     = "FARGATE"
 
   network_configuration {

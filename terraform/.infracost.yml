@@ -1,0 +1,12 @@
+# Infracost configuration file
+# See https://www.infracost.io/docs/features/config_file/
+
+version: 0.1
+
+projects:
+  - path: .
+    name: raster-timeseries-platform
+    terraform_workspace: default
+    
+    # Usage file for more accurate cost estimates
+    usage_file: infracost-usage.yml

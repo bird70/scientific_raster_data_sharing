@@ -35,7 +35,6 @@ resource "aws_lambda_function" "trigger" {
   environment {
     variables = {
       STATE_MACHINE_ARN = aws_sfn_state_machine.ingestion.arn
-      AWS_REGION        = var.aws_region
     }
   }
 

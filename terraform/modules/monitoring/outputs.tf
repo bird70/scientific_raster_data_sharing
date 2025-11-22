@@ -30,5 +30,5 @@ output "dask_scheduler_health_alarm_arn" {
 
 output "dashboard_name" {
   description = "Name of the CloudWatch dashboard"
-  value       = aws_cloudwatch_dashboard.main.dashboard_name
+  value       = length(aws_cloudwatch_dashboard.main) > 0 ? aws_cloudwatch_dashboard.main[0].dashboard_name : "N/A - Dashboard disabled"
 }

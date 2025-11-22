@@ -143,6 +143,7 @@ resource "aws_cloudwatch_metric_alarm" "dask_scheduler_health" {
 
 # CloudWatch Dashboard
 resource "aws_cloudwatch_dashboard" "main" {
+  count          = 0  # Temporarily disabled due to JSON format issues
   dashboard_name = "${var.name}-dashboard"
 
   dashboard_body = jsonencode({

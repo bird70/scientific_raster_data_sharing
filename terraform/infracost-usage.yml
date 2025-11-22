@@ -1,0 +1,84 @@
+# Infracost usage file
+# Provides usage estimates for resources that have variable costs
+# See: https://www.infracost.io/docs/features/usage_based_resources/
+
+version: 0.1
+
+resource_usage:
+  # ECS Fargate tasks - estimate based on expected usage
+  module.ecs.aws_ecs_service.tiles:
+    monthly_cpu_hours: 1460  # 2 tasks * 1 vCPU * 730 hours
+    monthly_memory_gb_hours: 2920  # 2 tasks * 2 GB * 730 hours
+
+  module.ecs.aws_ecs_service.timeseries:
+    monthly_cpu_hours: 2920  # 2 tasks * 2 vCPU * 730 hours
+    monthly_memory_gb_hours: 5840  # 2 tasks * 4 GB * 730 hours
+
+  module.ecs.aws_ecs_service.dask_scheduler:
+    monthly_cpu_hours: 730  # 1 task * 1 vCPU * 730 hours
+    monthly_memory_gb_hours: 1460  # 1 task * 2 GB * 730 hours
+
+  module.ecs.aws_ecs_service.dask_workers:
+    monthly_cpu_hours: 1460  # 2 tasks * 2 vCPU * 730 hours (average)
+    monthly_memory_gb_hours: 2920  # 2 tasks * 4 GB * 730 hours (average)
+
+  # ALB - estimate based on expected traffic
+  module.ecs.aws_lb.alb:
+    monthly_data_processed_gb: 100  # Estimate: 100 GB/month
+    monthly_new_connections: 50000  # Estimate: ~1600/day
+    monthly_active_connections: 10000  # Estimate: ~320/day
+
+  # OpenSearch - data storage estimate
+  module.data.aws_opensearch_domain.stac:
+    monthly_standard_storage_gb: 50  # Estimate: 50 GB STAC metadata
+
+  # ElastiCache Redis
+  module.data.aws_elasticache_cluster.redis:
+    # No additional usage costs for cache.t3.small
+
+  # S3 buckets - estimate based on expected data volume
+  module.data.aws_s3_bucket.raw:
+    monthly_standard_storage_gb: 500  # Raw NetCDF files
+    monthly_put_requests: 1000  # Uploads
+    monthly_get_requests: 5000  # Downloads
+
+  module.data.aws_s3_bucket.zarr:
+    monthly_standard_storage_gb: 1000  # Zarr arrays
+    monthly_get_requests: 50000  # Frequent reads
+
+  module.data.aws_s3_bucket.cog:
+    monthly_standard_storage_gb: 500  # COG tiles
+    monthly_get_requests: 100000  # Very frequent tile requests
+
+  module.data.aws_s3_bucket.stac:
+    monthly_standard_storage_gb: 10  # STAC JSON files
+    monthly_get_requests: 10000  # Catalog queries
+
+  # Lambda functions - estimate based on expected invocations
+  module.ingestion.aws_lambda_function.trigger:
+    monthly_requests: 1000  # ~30 files/day
+    average_request_duration_ms: 500
+
+  module.ingestion.aws_lambda_function.stac_creator:
+    monthly_requests: 1000
+    average_request_duration_ms: 2000
+
+  module.ingestion.aws_lambda_function.stac_indexer:
+    monthly_requests: 1000
+    average_request_duration_ms: 1000
+
+  # Step Functions
+  module.ingestion.aws_sfn_state_machine.ingestion:
+    monthly_state_transitions: 5000  # ~1000 executions * 5 states
+
+  # CloudWatch Logs - estimate log volume
+  module.ecs.aws_cloudwatch_log_group.tiles:
+    monthly_data_ingested_gb: 5
+    monthly_data_storage_gb: 5
+
+  module.ecs.aws_cloudwatch_log_group.timeseries:
+    monthly_data_ingested_gb: 10
+    monthly_data_storage_gb: 10
+
+  # Data transfer estimates
+  # Note: Infracost will estimate data transfer costs based on usage

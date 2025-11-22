@@ -5,12 +5,12 @@ output "alb_dns_name" {
 
 output "cloudfront_domain" {
   description = "Domain name of the CloudFront distribution"
-  value       = module.cloudfront.distribution_domain_name
+  value       = length(module.cloudfront) > 0 ? module.cloudfront[0].distribution_domain_name : "N/A - CloudFront not enabled"
 }
 
 output "cloudfront_distribution_id" {
   description = "ID of the CloudFront distribution"
-  value       = module.cloudfront.distribution_id
+  value       = length(module.cloudfront) > 0 ? module.cloudfront[0].distribution_id : "N/A - CloudFront not enabled"
 }
 
 output "s3_zarr_bucket" {

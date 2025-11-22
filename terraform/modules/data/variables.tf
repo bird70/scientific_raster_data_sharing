@@ -35,3 +35,8 @@ variable "tags" {
   description = "Common tags to apply to all resources"
   default     = {}
 }
+
+variable "opensearch_service_linked_role_arn" {
+  type        = string
+  description = "ARN of the OpenSearch service-linked role"
+}

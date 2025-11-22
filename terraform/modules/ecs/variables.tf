@@ -103,3 +103,23 @@ variable "dask_sg_id" {
   description = "Security group ID for Dask cluster"
   default     = ""
 }
+
+
+# Cost optimization variables
+variable "tiles_desired_count" {
+  type        = number
+  description = "Desired number of tiles service tasks"
+  default     = 2
+}
+
+variable "timeseries_desired_count" {
+  type        = number
+  description = "Desired number of timeseries service tasks"
+  default     = 2
+}
+
+variable "dask_workers_desired_count" {
+  type        = number
+  description = "Desired number of Dask worker tasks"
+  default     = 2
+}
