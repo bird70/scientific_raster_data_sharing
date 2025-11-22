@@ -27,6 +27,9 @@
     - github-actions.yml (build/test/deploy hints)
 - docs/
   - REQUIREMENTS_EARS.md (EARS-compliant requirements & acceptance tests)
+  - DEPLOYMENT_GUIDE.md (step-by-step deployment instructions)
+  - COST_OPTIMIZATION.md (cost management strategies)
+  - SECURITY_SCANNING.md (Checkov configuration and security policies)
   - runbook.md
   - deployment_notes.md
 

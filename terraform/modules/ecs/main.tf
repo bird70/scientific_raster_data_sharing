@@ -81,6 +81,22 @@ resource "aws_lb_listener" "https" {
 }
 
 # Listener rules for HTTP
+resource "aws_lb_listener_rule" "health_rule_http" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 5
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.tiles_tg.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/health"]
+    }
+  }
+}
+
 resource "aws_lb_listener_rule" "tiles_rule_http" {
   listener_arn = aws_lb_listener.http.arn
   priority     = 10
@@ -114,6 +130,23 @@ resource "aws_lb_listener_rule" "timeseries_rule_http" {
 }
 
 # Listener rules for HTTPS (conditional)
+resource "aws_lb_listener_rule" "health_rule_https" {
+  count        = length(aws_lb_listener.https)
+  listener_arn = aws_lb_listener.https[0].arn
+  priority     = 5
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.tiles_tg.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/health"]
+    }
+  }
+}
+
 resource "aws_lb_listener_rule" "tiles_rule_https" {
   count        = length(aws_lb_listener.https)
   listener_arn = aws_lb_listener.https[0].arn
