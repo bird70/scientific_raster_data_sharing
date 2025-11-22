@@ -266,9 +266,9 @@ resource "aws_vpc_endpoint" "logs" {
   )
 }
 
-resource "aws_vpc_endpoint" "es" {
+resource "aws_vpc_endpoint" "opensearch" {
   vpc_id              = aws_vpc.this.id
-  service_name        = "com.amazonaws.${var.aws_region}.es"
+  service_name        = "com.amazonaws.${var.aws_region}.aos"
   vpc_endpoint_type   = "Interface"
   subnet_ids          = [for s in aws_subnet.private : s.id]
   security_group_ids  = [aws_security_group.vpc_endpoints.id]

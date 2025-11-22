@@ -56,7 +56,6 @@ resource "aws_lambda_function" "stac_creator" {
   environment {
     variables = {
       STAC_BUCKET = var.stac_bucket
-      AWS_REGION  = var.aws_region
     }
   }
 
@@ -78,7 +77,6 @@ resource "aws_lambda_function" "stac_indexer" {
     variables = {
       OPENSEARCH_ENDPOINT = var.opensearch_endpoint
       OPENSEARCH_INDEX    = var.opensearch_index
-      AWS_REGION          = var.aws_region
       SNS_TOPIC_ARN       = aws_sns_topic.ingestion_failures.arn
     }
   }

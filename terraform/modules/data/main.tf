@@ -239,7 +239,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "stac" {
 # OpenSearch (managed)
 resource "aws_opensearch_domain" "stac" {
   domain_name    = "${var.name}-stac"
-  engine_version = "OpenSearch_2.8"
+  engine_version = "OpenSearch_2.9"
   cluster_config {
     instance_type          = "t3.small.search"
     instance_count         = 2
@@ -282,15 +282,15 @@ data "aws_iam_policy_document" "os_access" {
 
 # ElastiCache Redis (cluster mode disabled)
 resource "aws_elasticache_cluster" "redis" {
-  cluster_id                 = "${var.name}-redis"
-  engine                     = "redis"
-  engine_version             = "7.0"
-  node_type                  = "cache.t3.small"
-  num_cache_nodes            = 1
-  subnet_group_name          = aws_elasticache_subnet_group.redis.name
-  security_group_ids         = [var.vpc_sg_id]
-  transit_encryption_enabled = true
-  tags                       = merge(var.tags, { Name = "${var.name}-redis" })
+  cluster_id           = "${var.name}-redis"
+  engine               = "redis"
+  engine_version       = "7.0"
+  node_type            = "cache.t3.small"
+  num_cache_nodes      = 1
+  subnet_group_name    = aws_elasticache_subnet_group.redis.name
+  security_group_ids   = [var.vpc_sg_id]
+  parameter_group_name = "default.redis7"
+  tags                 = merge(var.tags, { Name = "${var.name}-redis" })
 }
 
 resource "aws_elasticache_subnet_group" "redis" {

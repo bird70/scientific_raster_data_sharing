@@ -88,6 +88,7 @@ module "ecs" {
 }
 
 module "cloudfront" {
+  count           = var.alb_certificate_arn != "" && var.alb_certificate_arn != "arn:aws:acm:ap-southeast-2:123456789012:certificate/EXAMPLE" ? 1 : 0
   source          = "./modules/cloudfront"
   name            = var.name
   alb_dns_name    = module.ecs.alb_dns_name

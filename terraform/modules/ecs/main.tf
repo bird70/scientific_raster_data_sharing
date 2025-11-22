@@ -41,7 +41,26 @@ resource "aws_lb_target_group" "timeseries_tg" {
   tags = var.tags
 }
 
+# HTTP Listener (always created)
+resource "aws_lb_listener" "http" {
+  load_balancer_arn = aws_lb.alb.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type = "fixed-response"
+
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "Not found"
+      status_code  = "404"
+    }
+  }
+}
+
+# HTTPS Listener (conditional - only if certificate provided)
 resource "aws_lb_listener" "https" {
+  count             = var.certificate_arn != "" && var.certificate_arn != "arn:aws:acm:ap-southeast-2:123456789012:certificate/EXAMPLE" ? 1 : 0
   load_balancer_arn = aws_lb.alb.arn
   port              = 443
   protocol          = "HTTPS"
@@ -59,8 +78,9 @@ resource "aws_lb_listener" "https" {
   }
 }
 
-resource "aws_lb_listener_rule" "tiles_rule" {
-  listener_arn = aws_lb_listener.https.arn
+# Listener rules for HTTP
+resource "aws_lb_listener_rule" "tiles_rule_http" {
+  listener_arn = aws_lb_listener.http.arn
   priority     = 10
 
   action {
@@ -75,8 +95,43 @@ resource "aws_lb_listener_rule" "tiles_rule" {
   }
 }
 
-resource "aws_lb_listener_rule" "timeseries_rule" {
-  listener_arn = aws_lb_listener.https.arn
+resource "aws_lb_listener_rule" "timeseries_rule_http" {
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 20
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.timeseries_tg.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/api/*"]
+    }
+  }
+}
+
+# Listener rules for HTTPS (conditional)
+resource "aws_lb_listener_rule" "tiles_rule_https" {
+  count        = length(aws_lb_listener.https)
+  listener_arn = aws_lb_listener.https[0].arn
+  priority     = 10
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.tiles_tg.arn
+  }
+
+  condition {
+    path_pattern {
+      values = ["/tiles/*"]
+    }
+  }
+}
+
+resource "aws_lb_listener_rule" "timeseries_rule_https" {
+  count        = length(aws_lb_listener.https)
+  listener_arn = aws_lb_listener.https[0].arn
   priority     = 20
 
   action {
