@@ -276,7 +276,7 @@
   - Create root README.md with architecture overview
   - _Requirements: 8.6_
 
-- [-] 16. Checkpoint - Validate Terraform configuration
+- [x] 16. Checkpoint - Validate Terraform configuration
   - Run terraform init in root directory
   - Run terraform validate
   - Run terraform plan with sample variables
@@ -307,5 +307,5 @@
   - Test IAM permissions for S3 access
   - _Requirements: 5.1, 5.2, 5.4, 5.5_
 
-- [ ] 20. Final checkpoint - End-to-end validation
+- [x] 20. Final checkpoint - End-to-end validation
   - Ensure all tests pass, ask the user if questions arise
