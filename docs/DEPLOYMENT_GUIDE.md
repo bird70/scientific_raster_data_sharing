@@ -295,8 +295,8 @@ terraform destroy
 ## What's Next?
 
 1. ✅ Infrastructure deployed
-2. ⏳ Build and push Docker image
-3. ⏳ Wait for ECS services to start
+2. ✅ Build and push Docker image
+3. ✅ Wait for ECS services to start
 4. ⏳ Upload test data
 5. ⏳ Configure GitHub secrets for CI/CD
 6. ⏳ Set up HTTPS (optional)

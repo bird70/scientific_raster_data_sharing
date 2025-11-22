@@ -6,24 +6,27 @@ This project uses GitHub Actions for CI/CD. The pipeline includes testing, build
 
 ## Required Secrets
 
-Configure these secrets in your GitHub repository settings (`Settings > Secrets and variables > Actions`):
+Configure these secrets in your GitHub repository settings (`Settings > Secrets and variables > Actions`).
 
-### AWS Credentials
+**Quick Setup:**
+1. Run `./scripts/get-github-secrets.sh` to get all values
+2. See `docs/GITHUB_SECRETS_SETUP.md` for detailed instructions
+3. See `GITHUB_SECRETS_QUICK_SETUP.md` for a quick reference
+
+### Required Secrets (9 total)
+
 - `AWS_ACCESS_KEY_ID` - AWS access key for deployment
 - `AWS_SECRET_ACCESS_KEY` - AWS secret key for deployment
-
-### ECR and ECS Configuration
 - `ECR_REPOSITORY` - ECR repository name (e.g., `raster-app-prod-repo`)
 - `ECS_CLUSTER` - ECS cluster name (e.g., `raster-app-prod-ecs-cluster`)
 - `ECS_SERVICE_TILES` - Tiles service name (e.g., `tiles-service`)
 - `ECS_SERVICE_TIMESERIES` - Timeseries service name (e.g., `timeseries-service`)
 - `ECS_TASK_DEFINITION_TILES` - Tiles task definition family (e.g., `tiles-service`)
 - `ECS_TASK_DEFINITION_TIMESERIES` - Timeseries task definition family (e.g., `timeseries-service`)
-
-### Application URLs
 - `ALB_URL` - Application Load Balancer URL for smoke tests (e.g., `http://your-alb-url.amazonaws.com`)
 
 ### Optional Secrets
+
 - `CODECOV_TOKEN` - Codecov token for coverage reporting (optional)
 
 ## Repository Permissions

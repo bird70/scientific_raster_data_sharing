@@ -31,6 +31,7 @@
   - COST_OPTIMIZATION.md (cost management strategies)
   - SECURITY_SCANNING.md (Checkov configuration and security policies)
   - GITHUB_ACTIONS_SETUP.md (CI/CD pipeline configuration and troubleshooting)
+  - GITHUB_SECRETS_SETUP.md (GitHub secrets configuration for CI/CD)
   - runbook.md
   - deployment_notes.md
 
