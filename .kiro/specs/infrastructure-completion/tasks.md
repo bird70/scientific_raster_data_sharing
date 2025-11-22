@@ -21,7 +21,7 @@
   - Add VPC endpoints for S3, ECR, CloudWatch, OpenSearch
   - _Requirements: 6.3, 9.6_
 
-- [ ] 4. Update IAM module with tagging and missing roles
+- [x] 4. Update IAM module with tagging and missing roles
   - Add tag variables to IAM module
   - Add ECS execution role (separate from task role)
   - Add Lambda execution role for ingestion pipeline
