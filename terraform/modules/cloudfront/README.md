@@ -241,3 +241,46 @@ resource "aws_route53_record" "cloudfront" {
 - Requirements 3.5: Custom domain and certificate support
 - Requirements 6.1: WAF association
 - Requirements 9.6: Resource tagging
+
+<!-- BEGIN_TF_DOCS -->
+## Requirements
+
+No requirements.
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.22.1 |
+
+## Modules
+
+No modules.
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [aws_cloudfront_distribution.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudfront_distribution) | resource |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_alb_dns_name"></a> [alb\_dns\_name](#input\_alb\_dns\_name) | DNS name of the Application Load Balancer to use as origin | `string` | n/a | yes |
+| <a name="input_certificate_arn"></a> [certificate\_arn](#input\_certificate\_arn) | ARN of ACM certificate for custom domain (optional) | `string` | `""` | no |
+| <a name="input_domain_name"></a> [domain\_name](#input\_domain\_name) | Custom domain name for CloudFront distribution (optional) | `string` | `""` | no |
+| <a name="input_name"></a> [name](#input\_name) | Name prefix for CloudFront resources | `string` | n/a | yes |
+| <a name="input_price_class"></a> [price\_class](#input\_price\_class) | CloudFront price class (PriceClass\_All, PriceClass\_200, PriceClass\_100) | `string` | `"PriceClass_100"` | no |
+| <a name="input_tags"></a> [tags](#input\_tags) | Tags to apply to all resources | `map(string)` | `{}` | no |
+| <a name="input_waf_acl_id"></a> [waf\_acl\_id](#input\_waf\_acl\_id) | ID of WAF Web ACL to associate with distribution (optional) | `string` | `""` | no |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_distribution_arn"></a> [distribution\_arn](#output\_distribution\_arn) | ARN of the CloudFront distribution |
+| <a name="output_distribution_domain_name"></a> [distribution\_domain\_name](#output\_distribution\_domain\_name) | Domain name of the CloudFront distribution |
+| <a name="output_distribution_hosted_zone_id"></a> [distribution\_hosted\_zone\_id](#output\_distribution\_hosted\_zone\_id) | CloudFront Route 53 zone ID |
+| <a name="output_distribution_id"></a> [distribution\_id](#output\_distribution\_id) | ID of the CloudFront distribution |
+<!-- END_TF_DOCS -->
