@@ -169,7 +169,7 @@
   - Add widgets for Dask cluster utilization
   - _Requirements: 7.5_
 
-- [ ] 11. Update root Terraform configuration
+- [x] 11. Update root Terraform configuration
   - Add CloudFront module invocation to main.tf
   - Add monitoring module invocation to main.tf
   - Add ingestion module invocation to main.tf

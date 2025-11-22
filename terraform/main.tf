@@ -87,15 +87,48 @@ module "ecs" {
   tags                    = local.common_tags
 }
 
-# CloudFront/infra module will be added in task 7
-# module "infra" {
-#   source = "./modules/infra"
-#   name = var.name
-#   alb_certificate_arn = var.alb_certificate_arn
-#   domain_name = var.domain_name
-#   alb_security_group_id = module.network.alb_security_group_id
-#   alb_dns_name = module.ecs.alb_dns_name
-#   cloudfront_origin_id = "${var.name}-alb-origin"
-#   web_acl_id = var.waf_web_acl_id
-#   tags = local.common_tags
-# }
+module "cloudfront" {
+  source          = "./modules/cloudfront"
+  name            = var.name
+  alb_dns_name    = module.ecs.alb_dns_name
+  certificate_arn = var.alb_certificate_arn
+  domain_name     = var.domain_name
+  waf_acl_id      = var.waf_web_acl_id
+  price_class     = var.cloudfront_price_class
+  tags            = local.common_tags
+}
+
+module "monitoring" {
+  source                              = "./modules/monitoring"
+  name                                = var.name
+  alb_arn_suffix                      = module.ecs.alb_arn_suffix
+  tiles_target_group_arn_suffix       = module.ecs.tiles_target_group_arn_suffix
+  timeseries_target_group_arn_suffix  = module.ecs.timeseries_target_group_arn_suffix
+  cluster_name                        = module.ecs.cluster_name
+  tiles_service_name                  = module.ecs.tiles_service_name
+  timeseries_service_name             = module.ecs.timeseries_service_name
+  dask_scheduler_service_name         = module.ecs.dask_scheduler_service_name
+  dask_workers_service_name           = module.ecs.dask_workers_service_name
+  alarm_email                         = var.alarm_email
+  tags                                = local.common_tags
+}
+
+module "ingestion" {
+  source                              = "./modules/ingestion"
+  name                                = var.name
+  aws_region                          = var.aws_region
+  raw_bucket                          = module.data.s3_raw_bucket_id
+  zarr_bucket                         = module.data.s3_zarr_bucket_id
+  cog_bucket                          = module.data.s3_cog_bucket_id
+  stac_bucket                         = module.data.s3_stac_bucket_id
+  opensearch_endpoint                 = module.data.opensearch_domain_endpoint
+  opensearch_index                    = "stac"
+  lambda_execution_role_arn           = module.iam.lambda_execution_role_arn
+  step_functions_role_arn             = module.iam.step_functions_execution_role_arn
+  ecs_cluster_arn                     = module.ecs.cluster_arn
+  ecs_security_group_id               = module.network.ecs_tasks_security_group_id
+  private_subnets                     = module.network.private_subnet_ids
+  zarr_conversion_task_definition_arn = ""
+  cog_generation_task_definition_arn  = ""
+  tags                                = local.common_tags
+}

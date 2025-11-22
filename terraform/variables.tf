@@ -95,3 +95,15 @@ variable "environment" {
   description = "Environment name (dev, staging, prod)"
   default     = "dev"
 }
+
+variable "cloudfront_price_class" {
+  type        = string
+  description = "CloudFront price class (PriceClass_All, PriceClass_200, PriceClass_100)"
+  default     = "PriceClass_100"
+}
+
+variable "alarm_email" {
+  type        = string
+  description = "Email address for alarm notifications (optional)"
+  default     = ""
+}
