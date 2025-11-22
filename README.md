@@ -30,6 +30,7 @@
   - DEPLOYMENT_GUIDE.md (step-by-step deployment instructions)
   - COST_OPTIMIZATION.md (cost management strategies)
   - SECURITY_SCANNING.md (Checkov configuration and security policies)
+  - GITHUB_ACTIONS_SETUP.md (CI/CD pipeline configuration and troubleshooting)
   - runbook.md
   - deployment_notes.md
 

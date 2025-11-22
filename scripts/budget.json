@@ -1,0 +1,12 @@
+{
+  "BudgetName": "raster-platform-monthly",
+  "BudgetLimit": {
+    "Amount": "200",
+    "Unit": "USD"
+  },
+  "TimeUnit": "MONTHLY",
+  "BudgetType": "COST",
+  "CostFilters": {
+    "TagKeyValue": ["user:project_title$raster-timeseries-platform"]
+  }
+}

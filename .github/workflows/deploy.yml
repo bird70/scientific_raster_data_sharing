@@ -97,12 +97,16 @@ jobs:
     name: Terraform Documentation and Security
     runs-on: ubuntu-latest
     needs: test
+    permissions:
+      contents: write
+      pull-requests: write
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          persist-credentials: true
       
       - name: Install terraform-docs
         run: |
@@ -206,16 +210,26 @@ jobs:
       
       - name: Commit and push documentation changes
         run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add terraform/**/README.md
+          git add terraform/**/README.md || true
+          
           if git diff --staged --quiet; then
-            echo "No documentation changes to commit"
+            echo "✅ No documentation changes to commit"
           else
+            echo "📝 Committing documentation changes..."
             git commit -m "docs: update Terraform module documentation [skip ci]"
-            git push
+            
+            echo "⬆️ Pushing changes..."
+            git push || {
+              echo "⚠️ Failed to push documentation changes"
+              echo "This is not critical - documentation can be updated manually"
+              exit 0
+            }
+            echo "✅ Documentation updated successfully"
           fi
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        continue-on-error: true
 
   deploy:
     name: Deploy to ECS
