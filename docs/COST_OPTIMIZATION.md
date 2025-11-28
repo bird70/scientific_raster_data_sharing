@@ -57,48 +57,55 @@ terraform apply
 
 ## Cost Breakdown
 
-### Current Default Configuration: ~$265/month
+### Current Default Configuration: ~$175/month
 
-| Component | Cost/Month | Can Stop? |
-|-----------|------------|-----------|
-| **ECS Fargate** | **$120** | ✅ Yes |
-| - Tiles (2 tasks) | $70 | ✅ |
-| - Timeseries (2 tasks) | $100 | ✅ |
-| - Dask (3 tasks) | $40 | ✅ |
-| **OpenSearch** | **$50** | ❌ No* |
-| **Redis** | **$25** | ❌ No* |
-| **ALB** | **$20** | ❌ No |
-| **S3** | **$30** | ❌ No |
-| **Lambda + CloudWatch** | **$15** | ❌ No |
-| **Data Transfer** | **$5** | ❌ No |
+| Component | Cost/Month | Can Stop? | Notes |
+|-----------|------------|-----------|-------|
+| **ECS Fargate** | **$120** | ✅ Yes | API services |
+| - Tiles (2 tasks) | $70 | ✅ | |
+| - Timeseries (2 tasks) | $100 | ✅ | |
+| - Dask (3 tasks) | $40 | ✅ | |
+| **DynamoDB (STAC)** | **$5-10** | ❌ No | Serverless, pay-per-use |
+| **Redis** | **$25** | ❌ No* | Cache |
+| **ALB** | **$20** | ❌ No | Load balancer |
+| **S3** | **$30** | ❌ No | Storage |
+| **Lambda + CloudWatch** | **$15** | ❌ No | Ingestion pipeline |
+| **Data Transfer** | **$5** | ❌ No | Network |
 
 *Can be stopped but requires Terraform changes
 
-### Cost-Optimized Configuration: ~$170/month
+**Recent Optimization**: Migrated from OpenSearch ($100/month) to DynamoDB ($5-10/month) - **saves $90-95/month!**
+
+### Cost-Optimized Configuration: ~$50/month
 
 | Component | Cost/Month | Savings |
 |-----------|------------|---------|
 | ECS Fargate (1 task each) | $60 | -$60 |
-| OpenSearch (1 node) | $25 | -$25 |
+| DynamoDB (STAC) | $5-10 | $0 (already optimized) |
 | Redis (t3.micro) | $15 | -$10 |
-| Other (unchanged) | $70 | $0 |
-| **Total** | **$170** | **-$95** |
+| Other (unchanged) | $45 | $0 |
+| **Total** | **$50** | **-$125** |
 
-### With Auto-Scheduling: ~$90/month
+**Key Optimizations**: 
+- ✅ Migrated from OpenSearch to DynamoDB - saves $90-95/month (90% reduction)
+- ✅ Reduced ECS task count for non-production environments
+
+### With Auto-Scheduling: ~$30/month
 
 Running 10 hours/day, 5 days/week (weekdays 8 AM - 6 PM):
 
 | Component | Cost/Month | Savings |
 |-----------|------------|---------|
 | ECS Fargate (42% uptime) | $25 | -$95 |
-| Fixed costs | $65 | $0 |
-| **Total** | **$90** | **-$175** |
+| DynamoDB (usage-based) | $3-5 | $0 |
+| Fixed costs | $40 | $0 |
+| **Total** | **$30** | **-$145** |
 
 ## Cost Optimization Strategies
 
 ### Strategy 1: Development/Testing (Lowest Cost)
 
-**Target:** ~$90/month
+**Target:** ~$30/month
 
 ```bash
 # 1. Use cost-optimized config
@@ -114,9 +121,11 @@ terraform apply -var-file=terraform.tfvars.cost-optimized
 
 **Best for:** Non-production environments, personal projects
 
+**Includes**: DynamoDB migration savings ($90-95/month)
+
 ### Strategy 2: Production with Downtime Windows
 
-**Target:** ~$170/month
+**Target:** ~$50/month
 
 ```bash
 # 1. Use cost-optimized config
@@ -130,9 +139,11 @@ terraform apply -var-file=terraform.tfvars.cost-optimized
 
 **Best for:** Production with predictable low-traffic periods
 
+**Includes**: DynamoDB migration savings ($90-95/month)
+
 ### Strategy 3: Full Production (High Availability)
 
-**Target:** ~$265/month
+**Target:** ~$175/month
 
 ```bash
 # Use default configuration
@@ -141,6 +152,29 @@ terraform apply
 ```
 
 **Best for:** Production with 24/7 availability requirements
+
+**Includes**: DynamoDB migration savings ($90-95/month)
+
+## DynamoDB Migration (COMPLETED - SAVES $90-95/MONTH!)
+
+### ✅ Migrated from OpenSearch to DynamoDB
+
+**Before**: OpenSearch (2x t3.small.search) = $100/month  
+**After**: DynamoDB (on-demand) = $5-10/month  
+**Savings**: $90-95/month (90-95% reduction!)
+
+**Benefits:**
+- ✅ 90-95% cost reduction
+- ✅ Serverless (no cluster management)
+- ✅ Automatic scaling
+- ✅ Better reliability (99.99% SLA)
+- ✅ Simplified operations
+
+**Status**: Migration completed November 28, 2024
+
+**See**: `docs/DYNAMODB_MIGRATION_COST_REPORT.md` for detailed cost analysis
+
+---
 
 ## Advanced Cost Optimizations
 

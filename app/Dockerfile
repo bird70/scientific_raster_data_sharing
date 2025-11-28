@@ -5,17 +5,20 @@ RUN apt-get update && apt-get install -y \
     build-essential gdal-bin libgdal-dev libproj-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Install uv for faster package management
+RUN pip install --no-cache-dir uv
+
 ENV CPLUS_INCLUDE_PATH=/usr/include/gdal
 ENV C_INCLUDE_PATH=/usr/include/gdal
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY app/requirements.txt .
+RUN uv pip install --system --no-cache -r requirements.txt
 
 COPY ./app /app/app
-COPY ./tests /app/tests
+COPY ./app/ingestion /app/ingestion
 
 # Healthcheck and run
 EXPOSE 8080

@@ -28,10 +28,16 @@ output "s3_stac_bucket" {
   value       = module.data.s3_stac_bucket_id
 }
 
-output "opensearch_endpoint" {
-  description = "OpenSearch domain endpoint"
-  value       = module.data.opensearch_domain_endpoint
+output "s3_raw_bucket" {
+  description = "S3 bucket for raw data"
+  value       = module.data.s3_raw_bucket_id
 }
+
+# OpenSearch endpoint - REMOVED: Migrated to DynamoDB
+# output "opensearch_endpoint" {
+#   description = "OpenSearch domain endpoint"
+#   value       = module.data.opensearch_domain_endpoint
+# }
 
 output "dask_scheduler_endpoint" {
   description = "DNS name of the Dask scheduler"
@@ -61,4 +67,49 @@ output "monitoring_sns_topic_arn" {
 output "monitoring_dashboard_name" {
   description = "Name of the CloudWatch dashboard"
   value       = module.monitoring.dashboard_name
+}
+
+output "lambda_zarr_converter_arn" {
+  description = "ARN of the Lambda zarr converter function"
+  value       = module.lambda_ingestion.zarr_converter_arn
+}
+
+output "lambda_cog_generator_arn" {
+  description = "ARN of the Lambda COG generator function"
+  value       = module.lambda_ingestion.cog_generator_arn
+}
+
+output "lambda_trigger_arn" {
+  description = "ARN of the S3 trigger Lambda function"
+  value       = module.ingestion.trigger_lambda_arn
+}
+
+output "lambda_stac_creator_arn" {
+  description = "ARN of the STAC creator Lambda function"
+  value       = module.ingestion.stac_creator_lambda_arn
+}
+
+output "lambda_stac_indexer_arn" {
+  description = "ARN of the STAC indexer Lambda function"
+  value       = module.ingestion.stac_indexer_lambda_arn
+}
+
+output "dynamodb_stac_table_name" {
+  description = "Name of the DynamoDB STAC items table"
+  value       = module.dynamodb_stac.table_name
+}
+
+output "dynamodb_stac_table_arn" {
+  description = "ARN of the DynamoDB STAC items table"
+  value       = module.dynamodb_stac.table_arn
+}
+
+output "stac_backend" {
+  description = "STAC backend mode (dynamodb, opensearch, or dual)"
+  value       = var.stac_backend
+}
+
+output "cluster_name" {
+  description = "Name of the ECS cluster (for verification scripts)"
+  value       = module.ecs.cluster_name
 }

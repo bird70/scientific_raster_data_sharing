@@ -188,7 +188,6 @@ No modules.
 | [aws_db_subnet_group.db](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/db_subnet_group) | resource |
 | [aws_elasticache_cluster.redis](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/elasticache_cluster) | resource |
 | [aws_elasticache_subnet_group.redis](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/elasticache_subnet_group) | resource |
-| [aws_opensearch_domain.stac](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/opensearch_domain) | resource |
 | [aws_s3_bucket.cog](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
 | [aws_s3_bucket.raw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
 | [aws_s3_bucket.stac](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
@@ -214,10 +213,11 @@ No modules.
 | <a name="input_db_password"></a> [db\_password](#input\_db\_password) | n/a | `string` | `"changeMe123!"` | no |
 | <a name="input_db_username"></a> [db\_username](#input\_db\_username) | n/a | `string` | `"stac"` | no |
 | <a name="input_enable_rds"></a> [enable\_rds](#input\_enable\_rds) | n/a | `bool` | `false` | no |
-| <a name="input_name"></a> [name](#input\_name) | n/a | `string` | n/a | yes |
-| <a name="input_opensearch_service_linked_role_arn"></a> [opensearch\_service\_linked\_role\_arn](#input\_opensearch\_service\_linked\_role\_arn) | ARN of the OpenSearch service-linked role | `string` | n/a | yes |
 | <a name="input_private_subnets"></a> [private\_subnets](#input\_private\_subnets) | n/a | `list(string)` | n/a | yes |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | n/a | `string` | n/a | yes |
 | <a name="input_rds_allocated_storage"></a> [rds\_allocated\_storage](#input\_rds\_allocated\_storage) | n/a | `number` | `100` | no |
+| <a name="input_redis_node_type"></a> [redis\_node\_type](#input\_redis\_node\_type) | Redis node type | `string` | `"cache.t3.small"` | no |
+| <a name="input_short_name"></a> [short\_name](#input\_short\_name) | Short name for AWS resources with length limits | `string` | `"dp-sci-raster"` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Common tags to apply to all resources | `map(string)` | `{}` | no |
 | <a name="input_vpc_sg_id"></a> [vpc\_sg\_id](#input\_vpc\_sg\_id) | n/a | `string` | n/a | yes |
 
@@ -225,9 +225,9 @@ No modules.
 
 | Name | Description |
 |------|-------------|
-| <a name="output_opensearch_domain_endpoint"></a> [opensearch\_domain\_endpoint](#output\_opensearch\_domain\_endpoint) | n/a |
-| <a name="output_redis_primary_endpoint_address"></a> [redis\_primary\_endpoint\_address](#output\_redis\_primary\_endpoint\_address) | n/a |
+| <a name="output_redis_primary_endpoint_address"></a> [redis\_primary\_endpoint\_address](#output\_redis\_primary\_endpoint\_address) | OpenSearch removed - migrated to DynamoDB output "opensearch\_domain\_endpoint" { value = aws\_opensearch\_domain.stac.endpoint } |
 | <a name="output_s3_cog_bucket_id"></a> [s3\_cog\_bucket\_id](#output\_s3\_cog\_bucket\_id) | n/a |
+| <a name="output_s3_raw_bucket_arn"></a> [s3\_raw\_bucket\_arn](#output\_s3\_raw\_bucket\_arn) | n/a |
 | <a name="output_s3_raw_bucket_id"></a> [s3\_raw\_bucket\_id](#output\_s3\_raw\_bucket\_id) | n/a |
 | <a name="output_s3_stac_bucket_id"></a> [s3\_stac\_bucket\_id](#output\_s3\_stac\_bucket\_id) | n/a |
 | <a name="output_s3_zarr_bucket_id"></a> [s3\_zarr\_bucket\_id](#output\_s3\_zarr\_bucket\_id) | n/a |

@@ -117,6 +117,11 @@ cd terraform && terraform output
 - Check CloudWatch logs: `aws logs tail /ecs/tiles-service`
 - Verify Docker image exists in ECR
 
+**Tiles endpoint returns 500 errors?**
+- OpenSearch access policy may be missing
+- See `docs/OPENSEARCH_ACCESS_FIX.md` for solution
+- Check ECS logs for "User: anonymous" errors
+
 ## What You Have Now
 
 ✅ VPC with public/private subnets  

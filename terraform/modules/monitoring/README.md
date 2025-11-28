@@ -113,12 +113,25 @@ No modules.
 
 | Name | Type |
 |------|------|
+| [aws_cloudwatch_dashboard.dynamodb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_dashboard) | resource |
+| [aws_cloudwatch_dashboard.ingestion_pipeline](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_dashboard) | resource |
 | [aws_cloudwatch_dashboard.main](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_dashboard) | resource |
+| [aws_cloudwatch_metric_alarm.cog_high_memory](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
+| [aws_cloudwatch_metric_alarm.cog_task_failure](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.dask_scheduler_health](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
+| [aws_cloudwatch_metric_alarm.dynamodb_high_query_latency](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
+| [aws_cloudwatch_metric_alarm.dynamodb_high_read_latency](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
+| [aws_cloudwatch_metric_alarm.dynamodb_high_write_latency](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
+| [aws_cloudwatch_metric_alarm.dynamodb_throttled_reads](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
+| [aws_cloudwatch_metric_alarm.dynamodb_throttled_writes](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.high_error_rate](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.high_latency](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
+| [aws_cloudwatch_metric_alarm.step_functions_high_failure_rate](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
+| [aws_cloudwatch_metric_alarm.step_functions_long_execution](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.tiles_service_unavailable](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_cloudwatch_metric_alarm.timeseries_service_unavailable](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
+| [aws_cloudwatch_metric_alarm.zarr_high_memory](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
+| [aws_cloudwatch_metric_alarm.zarr_task_failure](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_metric_alarm) | resource |
 | [aws_sns_topic.alarms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic) | resource |
 | [aws_sns_topic_subscription.alarm_email](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
@@ -130,24 +143,35 @@ No modules.
 | <a name="input_alarm_email"></a> [alarm\_email](#input\_alarm\_email) | Email address for alarm notifications (optional) | `string` | `""` | no |
 | <a name="input_alb_arn_suffix"></a> [alb\_arn\_suffix](#input\_alb\_arn\_suffix) | ARN suffix of the Application Load Balancer for CloudWatch metrics | `string` | n/a | yes |
 | <a name="input_cluster_name"></a> [cluster\_name](#input\_cluster\_name) | Name of the ECS cluster | `string` | n/a | yes |
+| <a name="input_cog_task_definition_family"></a> [cog\_task\_definition\_family](#input\_cog\_task\_definition\_family) | Family name of the COG generation ECS task definition | `string` | `"cog-generation"` | no |
 | <a name="input_dask_scheduler_service_name"></a> [dask\_scheduler\_service\_name](#input\_dask\_scheduler\_service\_name) | Name of the Dask scheduler ECS service | `string` | n/a | yes |
 | <a name="input_dask_workers_service_name"></a> [dask\_workers\_service\_name](#input\_dask\_workers\_service\_name) | Name of the Dask workers ECS service | `string` | n/a | yes |
-| <a name="input_name"></a> [name](#input\_name) | Name prefix for monitoring resources | `string` | n/a | yes |
+| <a name="input_dynamodb_table_name"></a> [dynamodb\_table\_name](#input\_dynamodb\_table\_name) | Name of the DynamoDB STAC items table for monitoring | `string` | `""` | no |
+| <a name="input_project_name"></a> [project\_name](#input\_project\_name) | Name prefix for monitoring resources | `string` | n/a | yes |
+| <a name="input_state_machine_arn"></a> [state\_machine\_arn](#input\_state\_machine\_arn) | ARN of the Step Functions state machine for ingestion pipeline | `string` | `""` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Common tags to apply to all resources | `map(string)` | `{}` | no |
 | <a name="input_tiles_service_name"></a> [tiles\_service\_name](#input\_tiles\_service\_name) | Name of the tiles ECS service | `string` | n/a | yes |
 | <a name="input_tiles_target_group_arn_suffix"></a> [tiles\_target\_group\_arn\_suffix](#input\_tiles\_target\_group\_arn\_suffix) | ARN suffix of the tiles target group for CloudWatch metrics | `string` | n/a | yes |
 | <a name="input_timeseries_service_name"></a> [timeseries\_service\_name](#input\_timeseries\_service\_name) | Name of the timeseries ECS service | `string` | n/a | yes |
 | <a name="input_timeseries_target_group_arn_suffix"></a> [timeseries\_target\_group\_arn\_suffix](#input\_timeseries\_target\_group\_arn\_suffix) | ARN suffix of the timeseries target group for CloudWatch metrics | `string` | n/a | yes |
+| <a name="input_zarr_task_definition_family"></a> [zarr\_task\_definition\_family](#input\_zarr\_task\_definition\_family) | Family name of the Zarr conversion ECS task definition | `string` | `"zarr-conversion"` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
+| <a name="output_cog_high_memory_alarm_arn"></a> [cog\_high\_memory\_alarm\_arn](#output\_cog\_high\_memory\_alarm\_arn) | ARN of the COG generation high memory alarm |
+| <a name="output_cog_task_failure_alarm_arn"></a> [cog\_task\_failure\_alarm\_arn](#output\_cog\_task\_failure\_alarm\_arn) | ARN of the COG generation task failure alarm |
 | <a name="output_dashboard_name"></a> [dashboard\_name](#output\_dashboard\_name) | Name of the CloudWatch dashboard |
 | <a name="output_dask_scheduler_health_alarm_arn"></a> [dask\_scheduler\_health\_alarm\_arn](#output\_dask\_scheduler\_health\_alarm\_arn) | ARN of the Dask scheduler health alarm |
 | <a name="output_high_error_rate_alarm_arn"></a> [high\_error\_rate\_alarm\_arn](#output\_high\_error\_rate\_alarm\_arn) | ARN of the high error rate alarm |
 | <a name="output_high_latency_alarm_arn"></a> [high\_latency\_alarm\_arn](#output\_high\_latency\_alarm\_arn) | ARN of the high latency alarm |
+| <a name="output_ingestion_pipeline_dashboard_name"></a> [ingestion\_pipeline\_dashboard\_name](#output\_ingestion\_pipeline\_dashboard\_name) | Name of the ingestion pipeline CloudWatch dashboard |
 | <a name="output_sns_topic_arn"></a> [sns\_topic\_arn](#output\_sns\_topic\_arn) | ARN of the SNS topic for alarm notifications |
+| <a name="output_step_functions_high_failure_rate_alarm_arn"></a> [step\_functions\_high\_failure\_rate\_alarm\_arn](#output\_step\_functions\_high\_failure\_rate\_alarm\_arn) | ARN of the Step Functions high failure rate alarm |
+| <a name="output_step_functions_long_execution_alarm_arn"></a> [step\_functions\_long\_execution\_alarm\_arn](#output\_step\_functions\_long\_execution\_alarm\_arn) | ARN of the Step Functions long execution alarm |
 | <a name="output_tiles_service_unavailable_alarm_arn"></a> [tiles\_service\_unavailable\_alarm\_arn](#output\_tiles\_service\_unavailable\_alarm\_arn) | ARN of the tiles service unavailability alarm |
 | <a name="output_timeseries_service_unavailable_alarm_arn"></a> [timeseries\_service\_unavailable\_alarm\_arn](#output\_timeseries\_service\_unavailable\_alarm\_arn) | ARN of the timeseries service unavailability alarm |
+| <a name="output_zarr_high_memory_alarm_arn"></a> [zarr\_high\_memory\_alarm\_arn](#output\_zarr\_high\_memory\_alarm\_arn) | ARN of the Zarr conversion high memory alarm |
+| <a name="output_zarr_task_failure_alarm_arn"></a> [zarr\_task\_failure\_alarm\_arn](#output\_zarr\_task\_failure\_alarm\_arn) | ARN of the Zarr conversion task failure alarm |
 <!-- END_TF_DOCS -->

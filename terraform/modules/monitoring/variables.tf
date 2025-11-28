@@ -1,4 +1,4 @@
-variable "name" {
+variable "project_name" {
   type        = string
   description = "Name prefix for monitoring resources"
 }
@@ -53,4 +53,28 @@ variable "tags" {
   type        = map(string)
   description = "Common tags to apply to all resources"
   default     = {}
+}
+
+variable "dynamodb_table_name" {
+  type        = string
+  description = "Name of the DynamoDB STAC items table for monitoring"
+  default     = ""
+}
+
+variable "state_machine_arn" {
+  type        = string
+  description = "ARN of the Step Functions state machine for ingestion pipeline"
+  default     = ""
+}
+
+variable "zarr_task_definition_family" {
+  type        = string
+  description = "Family name of the Zarr conversion ECS task definition"
+  default     = "zarr-conversion"
+}
+
+variable "cog_task_definition_family" {
+  type        = string
+  description = "Family name of the COG generation ECS task definition"
+  default     = "cog-generation"
 }

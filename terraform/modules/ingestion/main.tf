@@ -24,7 +24,7 @@ data "archive_file" "stac_indexer_lambda" {
 # Trigger Lambda Function
 resource "aws_lambda_function" "trigger" {
   filename         = data.archive_file.trigger_lambda.output_path
-  function_name    = "${var.name}-ingestion-trigger"
+  function_name    = "${var.project_name}-ingestion-trigger"
   role             = var.lambda_execution_role_arn
   handler          = "handler.lambda_handler"
   source_code_hash = data.archive_file.trigger_lambda.output_base64sha256
@@ -44,7 +44,7 @@ resource "aws_lambda_function" "trigger" {
 # STAC Creator Lambda Function
 resource "aws_lambda_function" "stac_creator" {
   filename         = data.archive_file.stac_creator_lambda.output_path
-  function_name    = "${var.name}-stac-creator"
+  function_name    = "${var.project_name}-stac-creator"
   role             = var.lambda_execution_role_arn
   handler          = "handler.lambda_handler"
   source_code_hash = data.archive_file.stac_creator_lambda.output_base64sha256
@@ -64,7 +64,7 @@ resource "aws_lambda_function" "stac_creator" {
 # STAC Indexer Lambda Function
 resource "aws_lambda_function" "stac_indexer" {
   filename         = data.archive_file.stac_indexer_lambda.output_path
-  function_name    = "${var.name}-stac-indexer"
+  function_name    = "${var.project_name}-stac-indexer"
   role             = var.lambda_execution_role_arn
   handler          = "handler.lambda_handler"
   source_code_hash = data.archive_file.stac_indexer_lambda.output_base64sha256
@@ -74,9 +74,9 @@ resource "aws_lambda_function" "stac_indexer" {
 
   environment {
     variables = {
-      OPENSEARCH_ENDPOINT = var.opensearch_endpoint
-      OPENSEARCH_INDEX    = var.opensearch_index
       SNS_TOPIC_ARN       = aws_sns_topic.ingestion_failures.arn
+      DYNAMODB_STAC_TABLE = var.dynamodb_stac_table_name
+      STAC_BACKEND        = var.stac_backend
     }
   }
 
@@ -107,13 +107,13 @@ resource "aws_s3_bucket_notification" "raw_bucket_notification" {
 
 # SNS Topic for ingestion failures
 resource "aws_sns_topic" "ingestion_failures" {
-  name = "${var.name}-ingestion-failures"
+  name = "${var.project_name}-ingestion-failures"
   tags = var.tags
 }
 
 # Step Functions State Machine
 resource "aws_sfn_state_machine" "ingestion" {
-  name     = "${var.name}-ingestion-pipeline"
+  name     = "${var.project_name}-ingestion-pipeline"
   role_arn = var.step_functions_role_arn
   tags     = var.tags
 
@@ -137,15 +137,15 @@ resource "aws_sfn_state_machine" "ingestion" {
           }
           Overrides = {
             ContainerOverrides = [{
-              Name = "converter"
+              Name = "zarr-converter"
               Environment = [
                 {
                   Name  = "INPUT_BUCKET"
                   Value = var.raw_bucket
                 },
                 {
-                  Name  = "INPUT_KEY.$"
-                  Value = "$.key"
+                  "Name"    = "INPUT_KEY"
+                  "Value.$" = "$.key"
                 },
                 {
                   Name  = "OUTPUT_BUCKET"
@@ -155,7 +155,7 @@ resource "aws_sfn_state_machine" "ingestion" {
             }]
           }
         }
-        ResultPath = "$.zarr_conversion"
+        ResultPath = null
         Next       = "GenerateCOG"
         Catch = [{
           ErrorEquals = ["States.ALL"]
@@ -193,8 +193,8 @@ resource "aws_sfn_state_machine" "ingestion" {
                   Value = var.zarr_bucket
                 },
                 {
-                  Name  = "ZARR_KEY.$"
-                  Value = "$.zarr_conversion.zarr_key"
+                  "Name"    = "INPUT_KEY"
+                  "Value.$" = "$.key"
                 },
                 {
                   Name  = "OUTPUT_BUCKET"
@@ -204,7 +204,7 @@ resource "aws_sfn_state_machine" "ingestion" {
             }]
           }
         }
-        ResultPath = "$.cog_generation"
+        ResultPath = null
         Next       = "CreateSTAC"
         Catch = [{
           ErrorEquals = ["States.ALL"]
@@ -219,19 +219,25 @@ resource "aws_sfn_state_machine" "ingestion" {
         }]
       }
 
+      # CreateSTAC State
+      # Creates STAC metadata item with bounding box and asset references
+      # Computes zarr and cog keys from the original input key
+      # Returns stac_key for indexing in the next state
+      # Requirements: 4.1, 4.7, 4.8
       CreateSTAC = {
         Type     = "Task"
         Resource = "arn:aws:states:::lambda:invoke"
         Parameters = {
           FunctionName = aws_lambda_function.stac_creator.arn
           Payload = {
-            "zarr_bucket" = var.zarr_bucket
-            "zarr_key.$"  = "$.zarr_conversion.zarr_key"
-            "cog_bucket"  = var.cog_bucket
-            "cog_key.$"   = "$.cog_generation.cog_key"
-            "metadata.$"  = "$.metadata"
+            # Pass original input key - Lambda will compute zarr and cog keys
+            "input_key.$"   = "$.key"
+            "zarr_bucket"   = var.zarr_bucket
+            "cog_bucket"    = var.cog_bucket
+            "stac_bucket"   = var.stac_bucket
           }
         }
+        # ResultPath preserves all previous state data
         ResultPath = "$.stac_creation"
         Next       = "IndexSTAC"
         Catch = [{
@@ -298,3 +304,4 @@ resource "aws_sfn_state_machine" "ingestion" {
     }
   })
 }
+

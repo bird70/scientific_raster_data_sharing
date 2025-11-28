@@ -9,7 +9,14 @@ class Settings(BaseSettings):
     S3_ZARR_PREFIX: str = ""
     S3_COG_PREFIX: str = ""
     
-    # OpenSearch Configuration - required for STAC catalog
+    # STAC Backend Configuration
+    # Supported values: "dynamodb", "opensearch", "dual"
+    STAC_BACKEND: str = "opensearch"
+    
+    # DynamoDB Configuration - required when STAC_BACKEND is "dynamodb" or "dual"
+    DYNAMODB_STAC_TABLE: str = ""
+    
+    # OpenSearch Configuration - required when STAC_BACKEND is "opensearch" or "dual"
     OPENSEARCH_HOST: str = ""
     OPENSEARCH_INDEX: str = "stac"
     

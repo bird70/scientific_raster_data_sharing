@@ -4,7 +4,7 @@ resource "aws_vpc" "this" {
   enable_dns_support   = true
   tags = merge(
     var.tags,
-    { Name = "${var.name}-vpc" }
+    { Name = "${var.project_name}-vpc" }
   )
 }
 
@@ -12,7 +12,7 @@ resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.this.id
   tags = merge(
     var.tags,
-    { Name = "${var.name}-igw" }
+    { Name = "${var.project_name}-igw" }
   )
 }
 
@@ -24,7 +24,7 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
   tags = merge(
     var.tags,
-    { Name = "${var.name}-public-${each.key}" }
+    { Name = "${var.project_name}-public-${each.key}" }
   )
 }
 
@@ -35,7 +35,7 @@ resource "aws_subnet" "private" {
   availability_zone = element(var.azs, tonumber(each.key))
   tags = merge(
     var.tags,
-    { Name = "${var.name}-private-${each.key}" }
+    { Name = "${var.project_name}-private-${each.key}" }
   )
 }
 
@@ -47,7 +47,7 @@ resource "aws_route_table" "public" {
   }
   tags = merge(
     var.tags,
-    { Name = "${var.name}-public-rt" }
+    { Name = "${var.project_name}-public-rt" }
   )
 }
 
@@ -61,7 +61,7 @@ resource "aws_eip" "nat" {
   domain = "vpc"
   tags = merge(
     var.tags,
-    { Name = "${var.name}-nat-eip" }
+    { Name = "${var.project_name}-nat-eip" }
   )
 }
 
@@ -70,7 +70,7 @@ resource "aws_nat_gateway" "nat" {
   subnet_id     = aws_subnet.public[0].id
   tags = merge(
     var.tags,
-    { Name = "${var.name}-nat" }
+    { Name = "${var.project_name}-nat" }
   )
   depends_on = [aws_internet_gateway.igw]
 }
@@ -83,7 +83,7 @@ resource "aws_route_table" "private" {
   }
   tags = merge(
     var.tags,
-    { Name = "${var.name}-private-rt" }
+    { Name = "${var.project_name}-private-rt" }
   )
 }
 
@@ -94,7 +94,7 @@ resource "aws_route_table_association" "private_assoc" {
 }
 
 resource "aws_security_group" "alb" {
-  name        = "${var.name}-alb-sg"
+  name        = "${var.project_name}-alb-sg"
   vpc_id      = aws_vpc.this.id
   description = "Allow HTTP(S) inbound"
   ingress {
@@ -117,12 +117,12 @@ resource "aws_security_group" "alb" {
   }
   tags = merge(
     var.tags,
-    { Name = "${var.name}-alb-sg" }
+    { Name = "${var.project_name}-alb-sg" }
   )
 }
 
 resource "aws_security_group" "ecs_tasks" {
-  name        = "${var.name}-ecs-sg"
+  name        = "${var.project_name}-ecs-sg"
   vpc_id      = aws_vpc.this.id
   description = "Security group for ECS tasks"
   ingress {
@@ -139,12 +139,12 @@ resource "aws_security_group" "ecs_tasks" {
   }
   tags = merge(
     var.tags,
-    { Name = "${var.name}-ecs-sg" }
+    { Name = "${var.project_name}-ecs-sg" }
   )
 }
 
 resource "aws_security_group" "data" {
-  name        = "${var.name}-data-sg"
+  name        = "${var.project_name}-data-sg"
   vpc_id      = aws_vpc.this.id
   description = "Security group for data services (OpenSearch, Redis)"
   ingress {
@@ -167,12 +167,12 @@ resource "aws_security_group" "data" {
   }
   tags = merge(
     var.tags,
-    { Name = "${var.name}-data-sg" }
+    { Name = "${var.project_name}-data-sg" }
   )
 }
 
 resource "aws_security_group" "dask" {
-  name        = "${var.name}-dask-sg"
+  name        = "${var.project_name}-dask-sg"
   vpc_id      = aws_vpc.this.id
   description = "Security group for Dask cluster"
   ingress {
@@ -195,7 +195,7 @@ resource "aws_security_group" "dask" {
   }
   tags = merge(
     var.tags,
-    { Name = "${var.name}-dask-sg" }
+    { Name = "${var.project_name}-dask-sg" }
   )
 }
 
@@ -207,12 +207,12 @@ resource "aws_vpc_endpoint" "s3" {
   route_table_ids   = [aws_route_table.private.id]
   tags = merge(
     var.tags,
-    { Name = "${var.name}-s3-endpoint" }
+    { Name = "${var.project_name}-s3-endpoint" }
   )
 }
 
 resource "aws_security_group" "vpc_endpoints" {
-  name        = "${var.name}-vpc-endpoints-sg"
+  name        = "${var.project_name}-vpc-endpoints-sg"
   vpc_id      = aws_vpc.this.id
   description = "Security group for VPC endpoints"
   ingress {
@@ -229,7 +229,7 @@ resource "aws_security_group" "vpc_endpoints" {
   }
   tags = merge(
     var.tags,
-    { Name = "${var.name}-vpc-endpoints-sg" }
+    { Name = "${var.project_name}-vpc-endpoints-sg" }
   )
 }
 
@@ -242,7 +242,7 @@ resource "aws_vpc_endpoint" "ecr_api" {
   private_dns_enabled = true
   tags = merge(
     var.tags,
-    { Name = "${var.name}-ecr-api-endpoint" }
+    { Name = "${var.project_name}-ecr-api-endpoint" }
   )
 }
 
@@ -255,7 +255,7 @@ resource "aws_vpc_endpoint" "ecr_dkr" {
   private_dns_enabled = true
   tags = merge(
     var.tags,
-    { Name = "${var.name}-ecr-dkr-endpoint" }
+    { Name = "${var.project_name}-ecr-dkr-endpoint" }
   )
 }
 
@@ -268,7 +268,7 @@ resource "aws_vpc_endpoint" "logs" {
   private_dns_enabled = true
   tags = merge(
     var.tags,
-    { Name = "${var.name}-logs-endpoint" }
+    { Name = "${var.project_name}-logs-endpoint" }
   )
 }
 
@@ -281,7 +281,7 @@ resource "aws_vpc_endpoint" "opensearch" {
   private_dns_enabled = true
   tags = merge(
     var.tags,
-    { Name = "${var.name}-opensearch-endpoint" }
+    { Name = "${var.project_name}-opensearch-endpoint" }
   )
 }
 

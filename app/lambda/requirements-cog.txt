@@ -1,0 +1,6 @@
+boto3
+s3fs
+xarray
+zarr
+rioxarray
+numpy

@@ -1,0 +1,12 @@
+FROM public.ecr.aws/lambda/python:3.12
+
+WORKDIR ${LAMBDA_TASK_ROOT}
+
+# Install uv for faster pip installs
+RUN pip install uv
+
+COPY requirements-cog.txt .
+RUN uv pip install --system -r requirements-cog.txt
+
+COPY cog_generator_lambda.py .
+CMD ["cog_generator_lambda.lambda_handler"]

@@ -82,3 +82,13 @@ output "alb_arn_suffix" {
   description = "ARN suffix of the Application Load Balancer for CloudWatch metrics"
   value       = aws_lb.alb.arn_suffix
 }
+
+output "zarr_conversion_task_definition_arn" {
+  description = "ARN of the Zarr conversion task definition"
+  value       = aws_ecs_task_definition.zarr_conversion.arn
+}
+
+output "cog_generation_task_definition_arn" {
+  description = "ARN of the COG generation task definition"
+  value       = aws_ecs_task_definition.cog_generation.arn
+}

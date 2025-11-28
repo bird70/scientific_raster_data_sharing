@@ -1,0 +1,42 @@
+{
+    "family": "cog-generation",
+    "taskRoleArn": "arn:aws:iam::123456789101:role/cloud-scientific-raster-sharing-ecs-task-role",
+    "executionRoleArn": "arn:aws:iam::123456789101:role/cloud-scientific-raster-sharing-ecs-execution-role",
+    "networkMode": "awsvpc",
+    "containerDefinitions": [
+        {
+            "name": "cog-generator",
+            "image": "123456789101.dkr.ecr.ap-southeast-2.amazonaws.com/cloud-scientific-raster-sharing-repo:latest",
+            "cpu": 0,
+            "portMappings": [],
+            "essential": true,
+            "command": [
+                "python",
+                "/app/ingestion/cog_generator.py"
+            ],
+            "environment": [
+                {
+                    "name": "AWS_REGION",
+                    "value": "ap-southeast-2"
+                }
+            ],
+            "mountPoints": [],
+            "volumesFrom": [],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/cog-generation",
+                    "awslogs-region": "ap-southeast-2",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            },
+            "systemControls": []
+        }
+    ],
+    "volumes": [],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "2048",
+    "memory": "4096"
+}

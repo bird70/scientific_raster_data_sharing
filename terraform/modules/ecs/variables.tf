@@ -1,5 +1,11 @@
-variable "name" {
+variable "project_name" {
   type = string
+}
+
+variable "short_name" {
+  type        = string
+  description = "Short name for AWS resources with length limits"
+  default     = "dp-sci-raster"
 }
 
 variable "vpc_id" {
@@ -22,9 +28,10 @@ variable "s3_zarr_bucket" {
   type = string
 }
 
-variable "opensearch_endpoint" {
-  type = string
-}
+# OpenSearch endpoint - REMOVED: Migrated to DynamoDB
+# variable "opensearch_endpoint" {
+#   type = string
+# }
 
 variable "redis_endpoint" {
   type = string
@@ -76,11 +83,12 @@ variable "s3_cog_bucket" {
   description = "S3 bucket name for COG files"
 }
 
-variable "opensearch_index" {
-  type        = string
-  description = "OpenSearch index name"
-  default     = "stac"
-}
+# OpenSearch index - REMOVED: Migrated to DynamoDB
+# variable "opensearch_index" {
+#   type        = string
+#   description = "OpenSearch index name"
+#   default     = "stac"
+# }
 
 variable "cognito_client_id" {
   type        = string
@@ -122,4 +130,16 @@ variable "dask_workers_desired_count" {
   type        = number
   description = "Desired number of Dask worker tasks"
   default     = 2
+}
+
+variable "dynamodb_stac_table_name" {
+  type        = string
+  description = "DynamoDB table name for STAC items"
+  default     = ""
+}
+
+variable "stac_backend" {
+  type        = string
+  description = "STAC backend mode: dynamodb, opensearch, or dual"
+  default     = "opensearch"
 }

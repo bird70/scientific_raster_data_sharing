@@ -13,7 +13,17 @@ Your GitHub Actions workflow needs these secrets to deploy to AWS. Follow the st
 
 ## Secrets to Configure
 
-### 1. AWS Credentials
+### 1. AWS Authentication (Choose One)
+
+**Option A: OIDC (Recommended for GitHub Enterprise)**
+
+**AWS_ROLE_ARN**
+- Description: IAM role ARN for OIDC authentication
+- Value: `arn:aws:iam::ACCOUNT_ID:role/GitHubActions-cloud-Role`
+- How to get: See `docs/GITHUB_OIDC_SETUP.md` for complete setup
+- Benefits: No long-lived credentials, automatic rotation, better security
+
+**Option B: Access Keys (Legacy)**
 
 **AWS_ACCESS_KEY_ID**
 - Description: AWS access key for deployment
@@ -63,8 +73,24 @@ Your GitHub Actions workflow needs these secrets to deploy to AWS. Follow the st
 
 **ALB_URL**
 - Description: Application Load Balancer URL for smoke tests
-- Value: `http://raster-app-prod-alb-512894667.ap-southeast-2.elb.amazonaws.com`
+- Value: `http://cloud-sciraster-alb-1212121212.ap-southeast-2.elb.amazonaws.com`
 - How to get: Run `terraform output alb_dns_name` and prepend `http://`
+- Note: Use HTTP (not HTTPS) for testing without SSL certificates
+
+**S3_RAW_BUCKET**
+- Description: S3 raw data bucket name for enhanced testing
+- Value: `cloud-scientific-raster-sharing-raw-2e6c448c`
+- How to get: Run `terraform output s3_raw_bucket`
+
+**STEP_FUNCTIONS_ARN**
+- Description: Step Functions state machine ARN for enhanced testing
+- Value: `arn:aws:states:ap-southeast-2:123456789101:stateMachine:cloud-scientific-raster-sharing-ingestion-pipeline`
+- How to get: Run `terraform output ingestion_state_machine_arn`
+
+**OPENSEARCH_ENDPOINT**
+- Description: OpenSearch domain endpoint for enhanced testing
+- Value: `vpc-cloud-sciraster-stac-aaaabbbbbcccccddddd1231231.ap-southeast-2.es.amazonaws.com`
+- How to get: Run `terraform output opensearch_endpoint`
 
 ### 5. Optional Secrets
 
@@ -104,6 +130,15 @@ echo ""
 echo "ALB_URL:"
 echo "http://$(terraform output -json | jq -r '.alb_dns_name.value')"
 echo ""
+echo "S3_RAW_BUCKET:"
+terraform output -json | jq -r '.s3_raw_bucket.value // "cloud-scientific-raster-sharing-raw-2e6c448c"'
+echo ""
+echo "STEP_FUNCTIONS_ARN:"
+terraform output -json | jq -r '.ingestion_state_machine_arn.value // "arn:aws:states:ap-southeast-2:123456789101:stateMachine:cloud-scientific-raster-sharing-ingestion-pipeline"'
+echo ""
+echo "OPENSEARCH_ENDPOINT:"
+terraform output -json | jq -r '.opensearch_endpoint.value // "vpc-cloud-sciraster-stac-aaaabbbbbcccccddddd1231231.ap-southeast-2.es.amazonaws.com"'
+echo ""
 echo "=== AWS Credentials ==="
 echo "AWS_ACCESS_KEY_ID: <from your AWS credentials>"
 echo "AWS_SECRET_ACCESS_KEY: <from your AWS credentials>"
@@ -113,7 +148,7 @@ echo "AWS_SECRET_ACCESS_KEY: <from your AWS credentials>"
 
 After adding all secrets, verify:
 
-- [ ] All 9 secrets are added (8 required + 1 optional)
+- [ ] All 12 secrets are added (11 required + 1 optional)
 - [ ] No typos in secret names (they're case-sensitive)
 - [ ] No extra spaces in secret values
 - [ ] AWS credentials have correct permissions
@@ -256,6 +291,8 @@ After configuring all secrets:
 
 ## Related Documentation
 
+- `docs/GITHUB_OIDC_SETUP.md` - OIDC authentication setup (recommended)
+- `docs/OPENSEARCH_ACCESS_FIX.md` - Fix OpenSearch access issues
 - `docs/GITHUB_ACTIONS_SETUP.md` - Complete CI/CD setup guide
 - `docs/DEPLOYMENT_GUIDE.md` - Manual deployment instructions
 - `docs/GITHUB_ACTIONS_FIX.md` - Troubleshooting guide

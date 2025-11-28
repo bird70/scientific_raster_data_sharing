@@ -1,4 +1,4 @@
-variable "name" {
+variable "project_name" {
   type        = string
   description = "Name prefix for CloudFront resources"
 }

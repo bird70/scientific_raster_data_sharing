@@ -43,7 +43,7 @@ def lambda_handler(event, context):
             
             # Start Step Functions execution
             state_machine_arn = os.environ['STATE_MACHINE_ARN']
-            execution_name = key.replace('/', '-').replace('.nc', f'-{context.request_id[:8]}')
+            execution_name = key.replace('/', '-').replace('.nc', f'-{context.aws_request_id[:8]}')
             
             response = sfn_client.start_execution(
                 stateMachineArn=state_machine_arn,

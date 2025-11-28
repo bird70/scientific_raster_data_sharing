@@ -3,9 +3,15 @@ variable "aws_region" {
   default = "ap-southeast-2"
 }
 
-variable "name" {
+variable "project_name" {
   type    = string
-  default = "raster-platform"
+  default = "cloud-scientific-raster-sharing"
+}
+
+variable "short_name" {
+  type        = string
+  description = "Short name for AWS resources with length limits"
+  default     = "cloud-sciraster"
 }
 
 variable "vpc_cidr" {
@@ -80,7 +86,7 @@ variable "ecs_desired_count_timeseries" {
 }
 
 # Tagging variables
-variable "project_owner" {
+variable "service_owner" {
   type        = string
   description = "Owner of the project for resource tagging"
 }
@@ -106,4 +112,75 @@ variable "alarm_email" {
   type        = string
   description = "Email address for alarm notifications (optional)"
   default     = ""
+}
+
+# Cost optimization variables
+variable "tiles_desired_count" {
+  type        = number
+  description = "Desired number of tiles service tasks"
+  default     = 2
+}
+
+variable "timeseries_desired_count" {
+  type        = number
+  description = "Desired number of timeseries service tasks"
+  default     = 2
+}
+
+variable "dask_workers_min" {
+  type        = number
+  description = "Minimum number of Dask worker tasks"
+  default     = 2
+}
+
+variable "dask_workers_max" {
+  type        = number
+  description = "Maximum number of Dask worker tasks"
+  default     = 10
+}
+
+variable "opensearch_instance_count" {
+  type        = number
+  description = "Number of OpenSearch instances (1 for dev, 2+ for prod)"
+  default     = 2
+}
+
+variable "opensearch_instance_type" {
+  type        = string
+  description = "OpenSearch instance type (or1.small.search for Graviton, t3.small.search for x86)"
+  default     = "t3.small.search"
+}
+
+variable "opensearch_ebs_volume_size" {
+  type        = number
+  description = "EBS volume size in GB for OpenSearch"
+  default     = 20
+}
+
+variable "redis_node_type" {
+  type        = string
+  description = "Redis node type (cache.t4g.micro for Graviton, cache.t3.micro for x86)"
+  default     = "cache.t3.small"
+}
+
+variable "lambda_image_digest" {
+  type        = string
+  description = "Lambda image digest (sha256:...) for zarr converter"
+  default     = "sha256:07bae9b7be28ff2cf56ea3f2273815b49a835ad1f7add5aa2ce9f814834dc22a"
+}
+
+variable "cog_image_digest" {
+  type        = string
+  description = "Lambda image digest (sha256:...) for COG generator"
+  default     = "sha256:07bae9b7be28ff2cf56ea3f2273815b49a835ad1f7add5aa2ce9f814834dc22a"
+}
+
+variable "stac_backend" {
+  type        = string
+  description = "STAC backend mode: dynamodb, opensearch, or dual"
+  default     = "dynamodb"
+  validation {
+    condition     = contains(["dynamodb", "opensearch", "dual"], var.stac_backend)
+    error_message = "stac_backend must be one of: dynamodb, opensearch, dual"
+  }
 }

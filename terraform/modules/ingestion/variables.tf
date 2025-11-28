@@ -1,4 +1,4 @@
-variable "name" {
+variable "project_name" {
   type        = string
   description = "Name prefix for ingestion resources"
 }
@@ -29,16 +29,17 @@ variable "stac_bucket" {
   description = "S3 bucket name for STAC items"
 }
 
-variable "opensearch_endpoint" {
-  type        = string
-  description = "OpenSearch domain endpoint"
-}
-
-variable "opensearch_index" {
-  type        = string
-  description = "OpenSearch index name for STAC items"
-  default     = "stac"
-}
+# OpenSearch variables - REMOVED: Migrated to DynamoDB
+# variable "opensearch_endpoint" {
+#   type        = string
+#   description = "OpenSearch domain endpoint"
+# }
+#
+# variable "opensearch_index" {
+#   type        = string
+#   description = "OpenSearch index name for STAC items"
+#   default     = "stac"
+# }
 
 variable "lambda_execution_role_arn" {
   type        = string
@@ -81,4 +82,24 @@ variable "tags" {
   type        = map(string)
   description = "Common tags to apply to all resources"
   default     = {}
+}
+
+variable "lambda_zarr_converter_arn" {
+  type = string
+}
+
+variable "lambda_cog_generator_arn" {
+  type = string
+}
+
+variable "dynamodb_stac_table_name" {
+  type        = string
+  description = "DynamoDB table name for STAC items"
+  default     = ""
+}
+
+variable "stac_backend" {
+  type        = string
+  description = "STAC backend mode: dynamodb, opensearch, or dual"
+  default     = "opensearch"
 }

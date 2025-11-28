@@ -12,9 +12,11 @@ rioxarray==0.18.1
 # Array and Data Processing
 xarray==2024.11.0
 zarr==2.18.3
+numcodecs==0.12.1
 numpy==2.1.3
 dask[distributed]==2024.12.1
 s3fs==2024.10.0
+netcdf4==1.7.2
 
 # Search and Catalog
 opensearch-py==2.8.0
@@ -33,6 +35,9 @@ structlog==24.4.0
 # HTTP Client
 httpx==0.28.1
 
+# AWS SDK
+boto3==1.35.63
+
 # Utilities
 tenacity==9.0.0
 
@@ -43,3 +48,5 @@ matplotlib==3.9.3
 pytest==8.3.4
 pytest-asyncio==0.24.0
 pytest-cov==7.0.0
+moto==5.0.21
+hypothesis==6.119.4

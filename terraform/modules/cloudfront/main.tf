@@ -1,7 +1,7 @@
 resource "aws_cloudfront_distribution" "main" {
   enabled         = true
   is_ipv6_enabled = true
-  comment         = "${var.name} CloudFront distribution"
+  comment         = "${var.project_name} CloudFront distribution"
   price_class     = var.price_class
   aliases         = var.domain_name != "" ? [var.domain_name] : []
   web_acl_id      = var.waf_acl_id != "" ? var.waf_acl_id : null
@@ -13,7 +13,7 @@ resource "aws_cloudfront_distribution" "main" {
     custom_origin_config {
       http_port              = 80
       https_port             = 443
-      origin_protocol_policy = "https-only"
+      origin_protocol_policy = var.certificate_arn != "" ? "https-only" : "http-only"
       origin_ssl_protocols   = ["TLSv1.2"]
     }
   }
@@ -102,3 +102,4 @@ resource "aws_cloudfront_distribution" "main" {
 
   tags = var.tags
 }
+
