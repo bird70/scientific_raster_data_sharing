@@ -1,5 +1,84 @@
 # Scientific Raster Data Sharing on AWS
 
+## High-Level Architecture
+
+```
+┌─────────────┐
+│   Users     │
+└──────┬──────┘
+       │
+       ▼
+┌─────────────────┐
+│  CloudFront CDN │ (Tile caching, HTTPS)
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│      ALB        │ (HTTPS listener, path routing)
+└────────┬────────┘
+         │
+    ┌────┴────┐
+    │         │
+    ▼         ▼
+┌────────┐ ┌──────────┐
+│ Tiles  │ │Timeseries│ (ECS Fargate services)
+│Service │ │ Service  │
+└───┬────┘ └────┬─────┘
+    │           │
+    │           ▼
+    │      ┌─────────┐
+    │      │  Dask   │ (Scheduler + Workers)
+    │      │ Cluster │
+    │      └────┬────┘
+    │           │
+    └───────┬───┴──────┐
+            │          │
+            ▼          ▼
+       ┌────────┐  ┌──────────┐
+       │   S3   │  │OpenSearch│
+       │ Zarr/  │  │  (STAC)  │
+       │  COG   │  └──────────┘
+       └────────┘
+            ▲
+            │
+    ┌───────┴────────┐
+    │   Ingestion    │
+    │    Pipeline    │
+    │ (Lambda + Step │
+    │   Functions)   │
+    └───────▲────────┘
+            │
+       ┌────┴────┐
+       │   S3    │
+       │  Raw    │
+       │ NetCDF  │
+       └─────────┘
+```
+
+### Component Interaction Flow
+
+**Tile Request Flow:**
+1. User requests tile → CloudFront (cache check)
+2. Cache miss → ALB → Tiles ECS Service
+3. Service queries OpenSearch for COG location
+4. Service reads COG from S3, renders tile
+5. Response cached at CloudFront edge
+
+**Timeseries Request Flow:**
+1. User requests timeseries → CloudFront (no cache) → ALB → Timeseries ECS Service
+2. Service queries OpenSearch for overlapping datasets
+3. Service submits Dask tasks to read Zarr from S3
+4. Dask workers process in parallel, aggregate results
+5. Service caches result in Redis, returns to user
+
+**Ingestion Flow:**
+1. NetCDF uploaded to S3 raw bucket
+2. S3 event triggers Lambda
+3. Lambda starts Step Functions workflow
+4. Workflow orchestrates: NetCDF→Zarr conversion, COG generation, STAC item creation
+5. STAC item indexed in OpenSearch
+
+
 ## Contents (top-level):
 - terraform/
   - main.tf, variables.tf, outputs.tf, terraform.tfvars
@@ -42,7 +121,7 @@
 - IAM module grants least-privilege to S3 prefixes and OpenSearch domain; review and tighten as needed.
 - For large Dask workloads, consider switching to EKS-managed Dask for lower-latency compute nodes; Terraform includes hooks in modules/ecs/dask for that.
 
-## Architecture diagram (text + ASCII block diagram) — Raster Platform (ap-southeast-2)
+## Architecture diagrams 
 
 Legend:
 - ECS = AWS Fargate/ECS tasks (FastAPI app)
