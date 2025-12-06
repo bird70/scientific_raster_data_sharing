@@ -114,21 +114,6 @@ Users accessing the platform from mobile devices or tablets need a responsive in
 
 ---
 
-### User Story 3 - [Brief Title] (Priority: P3)
-
-[Describe this user journey in plain language]
-
-**Why this priority**: [Explain the value and why it has this priority level]
-
-**Independent Test**: [Describe how this can be tested independently]
-
-**Acceptance Scenarios**:
-
-1. **Given** [initial state], **When** [action], **Then** [expected outcome]
-
----
-
-
 ### Edge Cases
 
 - **What happens when a dataset has no COG tiles available?** System displays metadata only with message "Map visualization not available; timeseries queries still supported"
