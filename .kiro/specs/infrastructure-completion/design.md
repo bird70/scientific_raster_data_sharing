@@ -29,6 +29,7 @@ The architecture follows AWS best practices with containerized services running 
     │         │
     ▼         ▼
 ┌────────┐ ┌──────────┐
+- Mock DynamoDB client/table responses
 │ Tiles  │ │Timeseries│ (ECS Fargate services)
 │Service │ │ Service  │
 └───┬────┘ └────┬─────┘
@@ -42,10 +43,10 @@ The architecture follows AWS best practices with containerized services running 
     └───────┬───┴──────┐
             │          │
             ▼          ▼
-       ┌────────┐  ┌──────────┐
-       │   S3   │  │OpenSearch│
-       │ Zarr/  │  │  (STAC)  │
-       │  COG   │  └──────────┘
+      ┌────────┐  ┌──────────┐
+      │   S3   │  │DynamoDB  │
+      │ Zarr/  │  │  (STAC)  │
+      │  COG   │  └──────────┘
        └────────┘
             ▲
             │
@@ -68,13 +69,13 @@ The architecture follows AWS best practices with containerized services running 
 **Tile Request Flow:**
 1. User requests tile → CloudFront (cache check)
 2. Cache miss → ALB → Tiles ECS Service
-3. Service queries OpenSearch for COG location
+3. Service queries DynamoDB (STAC table) for COG location
 4. Service reads COG from S3, renders tile
 5. Response cached at CloudFront edge
 
 **Timeseries Request Flow:**
 1. User requests timeseries → CloudFront (no cache) → ALB → Timeseries ECS Service
-2. Service queries OpenSearch for overlapping datasets
+2. Service queries DynamoDB (STAC table) for overlapping datasets
 3. Service submits Dask tasks to read Zarr from S3
 4. Dask workers process in parallel, aggregate results
 5. Service caches result in Redis, returns to user
@@ -84,7 +85,7 @@ The architecture follows AWS best practices with containerized services running 
 2. S3 event triggers Lambda
 3. Lambda starts Step Functions workflow
 4. Workflow orchestrates: NetCDF→Zarr conversion, COG generation, STAC item creation
-5. STAC item indexed in OpenSearch
+5. STAC item upserted into DynamoDB STAC table (with GSIs for spatial/temporal)
 
 ## Components and Interfaces
 
@@ -101,14 +102,14 @@ The architecture follows AWS best practices with containerized services running 
   - `AWS_REGION`: ap-southeast-2
   - `S3_ZARR_PREFIX`: s3://{zarr-bucket}/
   - `S3_COG_PREFIX`: s3://{cog-bucket}/
-  - `OPENSEARCH_HOST`: {opensearch-endpoint}
-  - `OPENSEARCH_INDEX`: stac
+  - `STAC_TABLE_NAME`: {dynamodb-table}
+  - `STAC_GSI_NAME`: {gsi-name-for-spatial-temporal}
   - `REDIS_URL`: redis://{redis-endpoint}:6379
   - `COGNITO_JWKS_URL`: https://cognito-idp.{region}.amazonaws.com/{pool-id}/.well-known/jwks.json
   - `COGNITO_USERPOOL_AUD`: {client-id}
   - `DASK_SCHEDULER`: {dask-scheduler-endpoint}:8786
 - **Logging:** CloudWatch Logs with 7-day retention
-- **IAM Role:** Task role with S3, OpenSearch, and Secrets Manager permissions
+- **IAM Role:** Task role with S3, DynamoDB (table + GSI), and Secrets Manager permissions
 
 **Service Configuration:**
 - **Desired Count:** 2 (tiles), 2 (timeseries)
@@ -194,7 +195,7 @@ The architecture follows AWS best practices with containerized services running 
 
 ### 5. Ingestion Pipeline
 
-**Purpose:** Automatically convert uploaded NetCDF files to Zarr and COG
+**Purpose:** Automatically convert uploaded NetCDF files to Zarr and COG and persist STAC metadata in DynamoDB
 
 **Components:**
 
@@ -256,7 +257,7 @@ States:
 
 **STAC Indexing Lambda:**
 - Read STAC item from S3
-- Index in OpenSearch
+- Upsert item into DynamoDB STAC table (PK/SK + GSIs for spatial/temporal queries)
 - Verify indexing success
 
 **Error Handling:**
@@ -300,7 +301,7 @@ States:
 
 **VPC Endpoints:**
 - S3 Gateway Endpoint (no cost)
-- OpenSearch VPC Endpoint
+- DynamoDB Gateway Endpoint (no cost)
 - ECR API and DKR endpoints
 - CloudWatch Logs endpoint
 - Secrets Manager endpoint (if using)
@@ -309,16 +310,16 @@ States:
 - **ALB SG:** Ingress 443 from 0.0.0.0/0, egress to ECS SG
 - **ECS SG:** Ingress 8080 from ALB SG, egress to all (for AWS services)
 - **Dask SG:** Ingress 8786-8787 from ECS SG, egress to all
-- **OpenSearch SG:** Ingress 443 from ECS SG
 - **Redis SG:** Ingress 6379 from ECS SG
 
 **IAM Policies:**
 - **ECS Task Role:**
   - S3: GetObject, ListBucket on data buckets
-  - OpenSearch: ESHttpGet, ESHttpPost, ESHttpPut
+  - DynamoDB: GetItem, Query, Scan, BatchGetItem, PutItem on STAC table + GSIs
   - CloudWatch: PutMetricData, CreateLogStream, PutLogEvents
 - **Lambda Execution Role:**
   - S3: GetObject, PutObject
+  - DynamoDB: PutItem, UpdateItem for STAC indexer Lambda
   - Step Functions: StartExecution
   - CloudWatch Logs: CreateLogGroup, CreateLogStream, PutLogEvents
 - **Step Functions Role:**
@@ -328,7 +329,7 @@ States:
 
 **Encryption:**
 - S3: SSE-S3 (AES-256) on all buckets
-- OpenSearch: Encryption at rest enabled
+- DynamoDB: Encryption at rest (AWS-managed KMS)
 - Redis: Encryption in transit enabled
 - ALB: TLS 1.2+ only
 
@@ -445,23 +446,23 @@ States:
 
 **Network Module (terraform/modules/network/):**
 - VPC, subnets, route tables, internet gateway
-- Security groups for ALB, ECS, Dask, OpenSearch, Redis
-- VPC endpoints
+- Security groups for ALB, ECS, Dask, Redis
+- VPC endpoints (S3, DynamoDB gateway; ECR; CloudWatch Logs)
 - Outputs: VPC ID, subnet IDs, security group IDs
 
 **IAM Module (terraform/modules/iam/):**
 - ECS task role and execution role
 - Lambda execution roles
 - Step Functions role
-- Policies for S3, OpenSearch, CloudWatch
+- Policies for S3, DynamoDB (STAC table/GSI), CloudWatch
 - Outputs: Role ARNs
 
 **Data Module (terraform/modules/data/):**
 - S3 buckets (raw, zarr, cog, stac)
-- OpenSearch domain
+- DynamoDB STAC table (PK/SK + GSIs for spatial/temporal)
 - ElastiCache Redis cluster
 - Optional RDS PostgreSQL
-- Outputs: Bucket names, endpoints
+- Outputs: Bucket names, DynamoDB table/GSIs, endpoints
 
 **ECS Module (terraform/modules/ecs/):**
 - ECR repository
@@ -644,9 +645,9 @@ variable "environment" {
 - Restart worker tasks if needed
 - Test timeseries API functionality
 
-### OpenSearch Unavailability
+### DynamoDB Unavailability
 
-**Scenario:** OpenSearch domain is unreachable
+**Scenario:** DynamoDB STAC table or endpoint is unreachable (API throttling or regional outage)
 
 **Handling:**
 - Application retries with exponential backoff (tenacity library)
@@ -655,10 +656,10 @@ variable "environment" {
 - Logs connection errors
 
 **Recovery:**
-- Check OpenSearch cluster health in AWS console
-- Verify security group rules allow ECS → OpenSearch
-- Verify VPC endpoint configuration
-- Scale OpenSearch cluster if needed
+- Check DynamoDB service status / AWS Health
+- Verify IAM permissions and VPC endpoint configuration
+- Inspect throttle metrics (ConsumedCapacity) and increase RCUs/WCUs or add backoff
+- Fallback: reprocess recent ingestion items once connectivity is restored
 
 ### Cache Failures
 
@@ -700,12 +701,12 @@ variable "environment" {
 
 **Coverage:**
 - **Tiles Module:**
-  - Test COG lookup from OpenSearch
+  - Test COG lookup from DynamoDB (STAC table) with hash/range keys
   - Test tile rendering with various resampling methods
   - Test nodata handling
   - Test error cases (collection not found, invalid coordinates)
 - **Timeseries Module:**
-  - Test STAC search with various parameters
+  - Test STAC search with various parameters (GSI queries)
   - Test Zarr reading and aggregation
   - Test cache key generation
   - Test error cases (no data found, invalid coordinates)
@@ -720,23 +721,23 @@ variable "environment" {
   - Test JSON serialization
 
 **Mocking:**
-- Mock OpenSearch client responses
+- Mock DynamoDB client/table responses
 - Mock S3/Zarr file access
 - Mock Redis operations
 - Mock Cognito JWKS endpoint
 
 **Example:**
 ```python
-def test_tile_generation_success(mock_opensearch, mock_cog):
-    # Arrange
-    mock_opensearch.search.return_value = {
-        "hits": {"hits": [{"_source": {"assets": {"cog": {"href": "s3://..."}}}}]}
-    }
-    # Act
-    response = client.get("/tiles/collection1/10/512/512.png")
-    # Assert
-    assert response.status_code == 200
-    assert response.headers["content-type"] == "image/png"
+def test_tile_generation_success(mock_dynamodb_table, mock_cog):
+  # Arrange
+  mock_dynamodb_table.query.return_value = {
+    "Items": [{"assets": {"cog": {"href": "s3://..."}}}]
+  }
+  # Act
+  response = client.get("/tiles/collection1/10/512/512.png")
+  # Assert
+  assert response.status_code == 200
+  assert response.headers["content-type"] == "image/png"
 ```
 
 ### Property-Based Testing
@@ -783,14 +784,14 @@ def test_timeseries_sorted(lon, lat, start, end):
 
 **Tests:**
 - **End-to-End Tile Request:**
-  - Start services with test OpenSearch and S3
+  - Start services with test DynamoDB (STAC table) and S3
   - Upload test COG to S3
-  - Index test STAC item
+  - Index test STAC item (DynamoDB put)
   - Request tile via API
   - Verify PNG response
 - **End-to-End Timeseries Request:**
   - Upload test Zarr to S3
-  - Index test STAC items
+  - Index test STAC items (DynamoDB put)
   - Request timeseries via API
   - Verify JSON response with expected values
 - **Ingestion Pipeline:**
@@ -798,11 +799,11 @@ def test_timeseries_sorted(lon, lat, start, end):
   - Trigger Lambda
   - Wait for Step Functions completion
   - Verify Zarr and COG created
-  - Verify STAC item indexed
+  - Verify STAC item indexed in DynamoDB
 
 **Environment:**
-- LocalStack for AWS services (S3, Lambda, Step Functions)
-- Docker Compose for OpenSearch, Redis, Dask
+- LocalStack for AWS services (S3, Lambda, Step Functions, DynamoDB)
+- Docker Compose for Redis, Dask
 - Test data fixtures
 
 ### Infrastructure Testing

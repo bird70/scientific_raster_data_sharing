@@ -3,69 +3,43 @@
 SYNC IMPACT REPORT — Constitution Update
 ═══════════════════════════════════════════════════════════════════════════════
 
-VERSION CHANGE: Initial Template → 1.0.0
-RATIONALE: First ratification of project constitution (MINOR version for initial
-           establishment of governance framework and core principles)
+VERSION CHANGE: 1.0.0 → 1.1.0
+RATIONALE: STAC catalog migrated from OpenSearch to DynamoDB (cost optimization);
+                updated constitution to reflect new database choice and testing/IaC
+                references.
 
-MODIFIED PRINCIPLES:
-  - [PRINCIPLE_1_NAME] → I. Infrastructure-as-Code (NON-NEGOTIABLE)
-  - [PRINCIPLE_2_NAME] → II. API-First Design
-  - [PRINCIPLE_3_NAME] → III. Test-Driven Development (NON-NEGOTIABLE)
-  - [PRINCIPLE_4_NAME] → IV. Observability & Monitoring
-  - [PRINCIPLE_5_NAME] → V. Security & Compliance First
+MODIFIED PRINCIPLES/SECTIONS:
+   - Infrastructure-as-Code principle: resource list now references DynamoDB
+   - Test-Driven Development principle: test fixtures updated to DynamoDB
+   - Infrastructure Standards: database updated to DynamoDB (STAC catalog)
 
-ADDED SECTIONS:
-  - Infrastructure Standards (technology stack, performance requirements, data standards)
-  - Development Workflow (code review, deployment pipeline, runbook requirements)
+ADDED SECTIONS: None
 
 REMOVED SECTIONS: None (initial template completion)
 
 TEMPLATE CONSISTENCY CHECKS:
-  ✅ .specify/templates/plan-template.md
-     Status: Compatible - uses generic "Constitution Check" placeholder
-     Action: None required (template is constitution-agnostic)
-  
-  ✅ .specify/templates/spec-template.md
-     Status: Compatible - focuses on user scenarios and requirements
-     Action: None required (no explicit constitution references)
-  
-  ✅ .specify/templates/tasks-template.md
-     Status: Compatible - task structure aligns with TDD principle
-     Action: None required (test-first workflow already embedded)
-  
-  ✅ .specify/templates/checklist-template.md
-     Status: Compatible - generic checklist structure
-     Action: None required
-  
-  ✅ .specify/templates/agent-file-template.md
-     Status: Not reviewed (agent guidance file)
-     Action: Consider adding constitution reference for agent compliance checks
+   ✅ .specify/templates/plan-template.md — compatible; no change
+   ✅ .specify/templates/spec-template.md — compatible; no change
+   ✅ .specify/templates/tasks-template.md — compatible; no change
+   ✅ .specify/templates/checklist-template.md — compatible; no change
+   ✅ .specify/templates/agent-file-template.md — not yet reviewed; optional to align
 
 COMMAND FILE CHECKS:
-  ℹ️  No .specify/templates/commands/ directory found
-     Status: N/A - command files do not exist in this repository structure
-     Action: None required
+   ℹ️  No .specify/templates/commands/ directory found — N/A
 
 DOCUMENTATION ALIGNMENT:
-  ℹ️  README.md
-     Status: Contains architecture diagram matching Infrastructure Standards section
-     Action: None required - already aligned
-  
-  ℹ️  .kiro/specs/infrastructure-completion/design.md
-     Status: Detailed design document aligns with constitution principles
-     Action: None required - design reflects IaC, security, observability
-  
-  ℹ️  docs/REQUIREMENTS_EARS.md
-     Status: EARS requirements align with TDD and API-First principles
-     Action: None required
+   ⚠️ README.md — still references OpenSearch for STAC index; needs DynamoDB update
+   ⚠️ .kiro/specs/infrastructure-completion/design.md — multiple OpenSearch mentions; needs update
+   ℹ️ docs/REQUIREMENTS_EARS.md — functional requirements mention STAC indexing; review when updating backend impl
 
-DEFERRED ITEMS: None
+DEFERRED ITEMS:
+   - Update README and design doc to reflect DynamoDB STAC index
 
 FOLLOW-UP RECOMMENDATIONS:
-  1. Create .specify/rfcs/ directory for future amendment proposals
-  2. Add constitution compliance section to PR template
-  3. Consider adding automated constitution compliance checker in CI pipeline
-  4. Document quarterly architecture review process and schedule
+   1. Create .specify/rfcs/ directory for future amendment proposals
+   2. Add constitution compliance section to PR template
+   3. Consider automated constitution compliance checker in CI pipeline
+   4. Document quarterly architecture review process and schedule
 
 ═══════════════════════════════════════════════════════════════════════════════
 -->
@@ -79,7 +53,7 @@ FOLLOW-UP RECOMMENDATIONS:
 All infrastructure MUST be defined and versioned in Terraform. Manual changes to AWS resources are prohibited except for emergency incident response, which MUST be documented and back-ported to Terraform within 24 hours.
 
 **Requirements:**
-- Every AWS resource (VPC, ECS, ALB, S3, Lambda, OpenSearch, etc.) declared in Terraform modules
+- Every AWS resource (VPC, ECS, ALB, S3, Lambda, DynamoDB, etc.) declared in Terraform modules
 - Modules MUST be parameterized via variables with documented defaults
 - State MUST be stored in remote backend (S3 + DynamoDB locking)
 - Changes applied via automated CI/CD pipeline only
@@ -105,7 +79,7 @@ All services MUST expose well-defined REST APIs with OpenAPI/Swagger documentati
 All business logic and API endpoints MUST have tests written before implementation. Deployment gates require passing unit tests (>80% coverage), integration tests, and infrastructure validation.
 
 **Requirements:**
-- Unit tests: pytest with fixtures for S3, OpenSearch, Redis mocks
+- Unit tests: pytest with fixtures for S3, DynamoDB, Redis mocks
 - Integration tests: Docker Compose stack with LocalStack for AWS services
 - Infrastructure tests: Terraform validation, `terraform plan` in CI, post-deployment smoke tests
 - Load tests: Locust or similar for tile/timeseries endpoints under target SLA
@@ -145,7 +119,7 @@ Security controls MUST be applied at every layer: network, application, data. Pr
 ### Technology Stack
 - **Compute:** ECS Fargate (serverless containers), Lambda (event-driven ingestion)
 - **Storage:** S3 (Zarr, COG, NetCDF), ElastiCache Redis (query caching)
-- **Database:** OpenSearch (STAC catalog index)
+- **Database:** DynamoDB (STAC catalog index; GSIs for spatial/temporal queries)
 - **CDN:** CloudFront with edge caching for tiles
 - **Load Balancing:** Application Load Balancer with path-based routing
 - **Orchestration:** Step Functions (ingestion pipeline), Dask (distributed timeseries processing)
@@ -202,4 +176,4 @@ This constitution supersedes all other development practices and standards. Any 
 - MINOR: New principles or sections added
 - PATCH: Clarifications, typos, non-semantic refinements
 
-**Version**: 1.0.0 | **Ratified**: 2025-12-07 | **Last Amended**: 2025-12-07
+**Version**: 1.1.0 | **Ratified**: 2025-12-07 | **Last Amended**: 2025-12-07

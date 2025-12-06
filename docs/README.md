@@ -242,7 +242,7 @@ Internet → ALB → ECS Services (tiles, timeseries)
                     ↓
               ┌─────┴─────┐
               │           │
-         OpenSearch    Redis
+         DynamoDB    Redis
               │           │
               └─────┬─────┘
                     ↓
@@ -257,7 +257,7 @@ S3 Upload → Lambda Trigger → Step Functions
                                 ↓
                            Lambda: STAC Creation
                                 ↓
-                           Lambda: STAC Indexing → OpenSearch
+                           Lambda: STAC Indexing → DynamoDB
 ```
 
 **Key Innovation**: Uses ResultSelector pattern for data flow between ECS tasks (no S3 intermediate storage needed)
@@ -277,7 +277,7 @@ S3 Upload → Lambda Trigger → Step Functions
 - **CloudWatch Logs**: `/ecs/tiles-service`, `/ecs/timeseries-service`, `/ecs/zarr-conversion`, `/ecs/cog-generation`
 - **CloudWatch Dashboard**: `{project_name}-ingestion-pipeline`
 - **Monitoring Script**: `./scripts/monitor-ingestion-pipeline.sh`
-- **AWS Console**: ECS, OpenSearch, S3, CloudWatch, Step Functions
+- **AWS Console**: ECS, DynamoDB, S3, CloudWatch, Step Functions
 - **Terraform State**: `terraform/terraform.tfstate`
 
 ---

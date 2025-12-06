@@ -34,10 +34,10 @@
     └───────┬───┴──────┐
             │          │
             ▼          ▼
-       ┌────────┐  ┌──────────┐
-       │   S3   │  │OpenSearch│
-       │ Zarr/  │  │  (STAC)  │
-       │  COG   │  └──────────┘
+      ┌────────┐  ┌──────────┐
+      │   S3   │  │DynamoDB  │
+      │ Zarr/  │  │  (STAC)  │
+      │  COG   │  └──────────┘
        └────────┘
             ▲
             │
@@ -60,13 +60,13 @@
 **Tile Request Flow:**
 1. User requests tile → CloudFront (cache check)
 2. Cache miss → ALB → Tiles ECS Service
-3. Service queries OpenSearch for COG location
+3. Service queries DynamoDB (STAC table) for COG location
 4. Service reads COG from S3, renders tile
 5. Response cached at CloudFront edge
 
 **Timeseries Request Flow:**
 1. User requests timeseries → CloudFront (no cache) → ALB → Timeseries ECS Service
-2. Service queries OpenSearch for overlapping datasets
+2. Service queries DynamoDB (STAC table) for overlapping datasets
 3. Service submits Dask tasks to read Zarr from S3
 4. Dask workers process in parallel, aggregate results
 5. Service caches result in Redis, returns to user
@@ -76,7 +76,7 @@
 2. S3 event triggers Lambda
 3. Lambda starts Step Functions workflow
 4. Workflow orchestrates: NetCDF→Zarr conversion, COG generation, STAC item creation
-5. STAC item indexed in OpenSearch
+5. STAC item upserted into DynamoDB STAC table (with GSIs for spatial/temporal)
 
 
 ## Contents (top-level):
@@ -96,7 +96,7 @@
     - auth.py (Cognito validation)
     - tiles.py (rio-tiler handlers)
     - timeseries.py (xarray/zarr + Dask)
-    - stac_lookup.py (OpenSearch)
+    - stac_lookup.py (DynamoDB STAC lookup)
     - cache.py (Redis)
     - metrics.py (Prometheus/OpenTelemetry)
     - config.py
@@ -117,8 +117,8 @@
 
 ## Notes:
 - Terraform variables.tf contains placeholders (ACM cert ARN, Cognito pool ID, domain). Fill terraform.tfvars before apply.
-- The app is production-ready: Cognito auth middleware, Dask client integration, Redis caching, OpenSearch STAC lookup, Prometheus metrics, structured logging, retry/backoff for S3/OpenSearch calls, and unit test scaffolding.
-- IAM module grants least-privilege to S3 prefixes and OpenSearch domain; review and tighten as needed.
+- The app is production-ready: Cognito auth middleware, Dask client integration, Redis caching, DynamoDB STAC lookup, Prometheus metrics, structured logging, retry/backoff for S3/DynamoDB calls, and unit test scaffolding.
+- IAM module grants least-privilege to S3 prefixes and DynamoDB table/index access; review and tighten as needed.
 - For large Dask workloads, consider switching to EKS-managed Dask for lower-latency compute nodes; Terraform includes hooks in modules/ecs/dask for that.
 
 ## Architecture diagrams 
@@ -130,7 +130,7 @@ Legend:
 - Cognito = User pool (auth)
 - ACM = TLS cert in ap-southeast-2
 - S3 = tile/asset storage (prefix-limited IAM)
-- OpenSearch = STAC index (domain with IAM access)
+- DynamoDB = STAC index (table with GSIs for spatial/temporal queries)
 - Redis = ElastiCache (cache)
 - Dask = ECS-based Dask workers (or EKS alternative)
 - CloudWatch / Prometheus + OTel = metrics & logs
@@ -154,7 +154,7 @@ ALB -> ECS Service (FastAPI tasks, Fargate)  <-- GitHub Actions -> ECR (build & 
   |
   +--> S3 (tile storage, prefixed access) [rio-tiler handlers -> S3 via boto3]
   |
-  +--> OpenSearch (STAC lookup) [stac_lookup.py]
+  +--> DynamoDB (STAC lookup) [stac_lookup.py]
   |
   +--> Dask scheduler & workers (ECS "dask" module) [timeseries.py uses Dask client]
   |       - For heavy workloads: EKS-managed Dask cluster option (modules/ecs/dask hooks)
@@ -167,16 +167,14 @@ ALB -> ECS Service (FastAPI tasks, Fargate)  <-- GitHub Actions -> ECR (build & 
 
 Supporting infra (network & security):
 - VPC with separate public/private subnets
-- ALB in public subnets; ECS tasks, Redis, OpenSearch in private subnets
-- NAT Gateway for outbound access to S3/OpenSearch endpoints
-- VPC endpoints for S3 and OpenSearch (recommended)
+- ALB in public subnets; ECS tasks, Redis in private subnets
+- VPC gateway endpoints for S3 and DynamoDB (recommended) to avoid NAT egress
 - Security groups:
   - ALB SG allows 443 from internet
-  - ECS task SG allows 443 from ALB, outbound to S3/OpenSearch/Redis/Dask
+  - ECS task SG allows 443 from ALB, outbound to Redis/Dask and AWS service endpoints
   - Redis SG restricts to ECS task SG
-  - OpenSearch SG restricts to ECS task SG
 - IAM:
-  - Task role permissions scoped to S3 prefixes and OpenSearch actions (least-privilege)
+  - Task role permissions scoped to S3 prefixes and DynamoDB table/index actions (least-privilege)
   - ECR pull role / execution role for ECS
   - Cognito roles as required
 
@@ -188,11 +186,11 @@ Deployment pipeline:
   - Terraform: plan & apply (or CI triggers deploy)
   - Update ECS task definition & service (blue/green or rolling)
 
-Notes / recommended tweaks:
-- Use VPC endpoints for S3 and OpenSearch to avoid NAT egress costs and reduce latency.
-- Consider EKS-managed Dask for high-throughput, low-latency compute (Terraform hooks already present).
-- Ensure terraform.tfvars is filled with ACM cert ARN, Cognito pool ID, domain before apply.
-- Tighten IAM to exact S3 prefixes and OpenSearch actions (already scaffolded).
+ Notes / recommended tweaks:
+ - Use VPC endpoints for S3 and DynamoDB to avoid NAT egress costs and reduce latency.
+ - Consider EKS-managed Dask for high-throughput, low-latency compute (Terraform hooks already present).
+ - Ensure terraform.tfvars is filled with ACM cert ARN, Cognito pool ID, domain before apply.
+ - Tighten IAM to exact S3 prefixes and DynamoDB table/index actions (already scaffolded).
 
 ASCII diagram:
 
@@ -205,20 +203,20 @@ Internet
 [ ALB (ACM TLS) ]
   |
   v
-+-----------------------------+
+-----------------------------+
 |        ECS Service          |  <-- tasks run Docker image from ECR
 |  FastAPI (main.py)          |
 |  - auth.py (Cognito JWT)    |
 |  - tiles.py (rio-tiler)     |
 |  - timeseries.py (Dask)     |
-|  - stac_lookup.py (OpenSearch)
+|  - stac_lookup.py (DynamoDB)
 |  - cache.py (Redis)         |
 |  - metrics.py (/metrics)    |
-+-----------------------------+
+-----------------------------+
    |     |        |         |
    |     |        |         |
    v     v        v         v
- [Redis] [S3]   [OpenSearch] [Dask scheduler & workers]
+ [Redis] [S3]   [DynamoDB] [Dask scheduler & workers]
    |      (tile data)      (ECS or EKS)
    v
  CloudWatch / Prometheus & OTel -> Observability backend
@@ -239,7 +237,7 @@ flowchart TD
   Cognito["Cognito (User Pool)"]
   Redis["ElastiCache Redis"]
   S3["S3 (tile & asset storage)"]
-  OS["OpenSearch (STAC index)"]
+  OS["DynamoDB (STAC index)"]
   DASK["Dask (Scheduler & Workers)<br>ECS or EKS"]
   Prom["Prometheus / OTel / CloudWatch"]
   CW["CloudWatch Logs"]
