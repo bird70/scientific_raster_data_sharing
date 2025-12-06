@@ -1,0 +1,29 @@
+# Cost-Optimized Configuration
+# This reduces costs by ~40-50% compared to default settings
+# Use this for development/testing environments
+
+name                 = "raster-app-prod"
+aws_region           = "ap-southeast-2"
+alb_certificate_arn  = "arn:aws:acm:ap-southeast-2:123456789012:certificate/EXAMPLE"
+domain_name          = "data.example.com"
+cognito_user_pool_id = "ap-southeast-2_XXXXXXXXX"
+enable_postgis       = false
+
+# Tagging variables
+project_owner = "platform-team"
+project_title = "raster-timeseries-platform"
+environment   = "prod"
+
+# Cost Optimization Settings
+# Reduce ECS task counts from 2 to 1 (saves ~$60/month)
+tiles_desired_count      = 1  # Default: 2
+timeseries_desired_count = 1  # Default: 2
+dask_workers_min         = 1  # Default: 2
+dask_workers_max         = 5  # Default: 10
+
+# Use smaller OpenSearch (saves ~$25/month)
+opensearch_instance_count = 1  # Default: 2 (no HA, but cheaper)
+opensearch_instance_type  = "t3.small.search"
+
+# Smaller Redis (already minimal)
+redis_node_type = "cache.t3.micro"  # Default: cache.t3.small (saves ~$10/month)

@@ -296,6 +296,7 @@ No modules.
 | <a name="input_ecr_repo_name"></a> [ecr\_repo\_name](#input\_ecr\_repo\_name) | n/a | `string` | n/a | yes |
 | <a name="input_ecs_sg_id"></a> [ecs\_sg\_id](#input\_ecs\_sg\_id) | Security group ID for ECS tasks | `string` | n/a | yes |
 | <a name="input_execution_role_arn"></a> [execution\_role\_arn](#input\_execution\_role\_arn) | ARN of the IAM role for ECS task execution | `string` | n/a | yes |
+| <a name="input_frontend_website_endpoint"></a> [frontend\_website\_endpoint](#input\_frontend\_website\_endpoint) | S3 website endpoint for frontend | `string` | n/a | yes |
 | <a name="input_image_uri"></a> [image\_uri](#input\_image\_uri) | URI of the Docker image in ECR | `string` | n/a | yes |
 | <a name="input_private_subnets"></a> [private\_subnets](#input\_private\_subnets) | n/a | `list(string)` | n/a | yes |
 | <a name="input_project_name"></a> [project\_name](#input\_project\_name) | n/a | `string` | n/a | yes |

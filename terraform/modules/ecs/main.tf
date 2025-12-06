@@ -327,6 +327,10 @@ resource "aws_ecs_task_definition" "tiles" {
         {
           name  = "COGNITO_USERPOOL_AUD"
           value = var.cognito_client_id
+        },
+        {
+          name  = "FRONTEND_WEBSITE_ENDPOINT"
+          value = var.frontend_website_endpoint
         }
       ]
       logConfiguration = {
@@ -392,6 +396,10 @@ resource "aws_ecs_task_definition" "timeseries" {
         {
           name  = "COGNITO_USERPOOL_AUD"
           value = var.cognito_client_id
+        },
+        {
+          name  = "FRONTEND_WEBSITE_ENDPOINT"
+          value = var.frontend_website_endpoint
         },
         {
           name  = "DASK_SCHEDULER"
@@ -516,8 +524,8 @@ resource "aws_ecs_task_definition" "zarr_conversion" {
   family                   = "zarr-conversion"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "512"   # 0.5 vCPU (optimized from 2048)
-  memory                   = "2048"  # 2GB (optimized from 4096)
+  cpu                      = "512"  # 0.5 vCPU (optimized from 2048)
+  memory                   = "2048" # 2GB (optimized from 4096)
   execution_role_arn       = var.execution_role_arn
   task_role_arn            = var.task_role_arn
 
@@ -552,8 +560,8 @@ resource "aws_ecs_task_definition" "cog_generation" {
   family                   = "cog-generation"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "512"   # 0.5 vCPU (optimized from 2048)
-  memory                   = "2048"  # 2GB (optimized from 4096)
+  cpu                      = "512"  # 0.5 vCPU (optimized from 2048)
+  memory                   = "2048" # 2GB (optimized from 4096)
   execution_role_arn       = var.execution_role_arn
   task_role_arn            = var.task_role_arn
 

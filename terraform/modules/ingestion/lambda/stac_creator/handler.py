@@ -148,7 +148,7 @@ def validate_metadata_structure(metadata: Dict[str, Any]) -> Dict[str, Any]:
         validated['bbox'] = [-180, -90, 180, 90]
     
     # Copy other fields, removing None and empty values
-    for key in ['zarr_key', 'zarr_bucket', 'is_default_bbox', 'collection_id']:
+    for key in ['zarr_key', 'zarr_bucket', 'is_default_bbox', 'collection_id', 'temporal']:
         if key in metadata and metadata[key] is not None:
             validated[key] = metadata[key]
     
@@ -387,11 +387,30 @@ def build_stac_properties(metadata: Dict[str, Any]) -> Dict[str, Any]:
         
     Requirements: 8.1, 8.2, 8.3, 8.4
     """
-    properties = {
-        "datetime": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
-        "created": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
-        "updated": datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
-    }
+    now = datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z')
+    
+    # Use temporal metadata if available, otherwise use current time
+    temporal = metadata.get('temporal')
+    if temporal and temporal.get('start'):
+        # Use start time as primary datetime
+        datetime_value = temporal['start']
+        # Add temporal extent properties
+        properties = {
+            "datetime": datetime_value,
+            "start_datetime": temporal['start'],
+            "end_datetime": temporal.get('end', temporal['start']),
+            "created": now,
+            "updated": now
+        }
+        print(f"Using temporal extent from metadata: {datetime_value}")
+    else:
+        # Fallback to current time
+        properties = {
+            "datetime": now,
+            "created": now,
+            "updated": now
+        }
+        print(f"No temporal metadata found, using current time: {now}")
     
     # Add variable names for easy searching
     if 'variables' in metadata and metadata['variables']:

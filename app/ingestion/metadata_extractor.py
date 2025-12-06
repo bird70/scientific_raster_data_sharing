@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class MetadataExtractor:
     """Extracts scientific metadata from NetCDF datasets"""
     
-    def extract_all_metadata(self, dataset: xr.Dataset) -> Dict[str, Any]:
+    def extract_all_metadata(self, dataset: xr.Dataset, filename: Optional[str] = None) -> Dict[str, Any]:
         """
         Extract comprehensive metadata from dataset.
         
@@ -24,19 +24,21 @@ class MetadataExtractor:
             dataset: xarray Dataset to extract metadata from
             
         Returns:
-            Dictionary containing variables, global attributes, and collection info
+            Dictionary containing variables, global attributes, collection info, and temporal extent
         """
         logger.info("Extracting metadata from NetCDF dataset")
         
         metadata = {
             "variables": self.extract_variables(dataset),
             "global_attributes": self.extract_global_attributes(dataset),
-            "collections": self.derive_collections(dataset)
+            "collections": self.derive_collections(dataset),
+            "temporal": self.extract_temporal_extent(dataset, filename)
         }
         
         logger.info(
             f"Extracted metadata: {len(metadata['variables'])} variables, "
-            f"{len(metadata['collections'])} collections"
+            f"{len(metadata['collections'])} collections, "
+            f"temporal: {metadata['temporal']}"
         )
         
         return metadata
@@ -165,6 +167,65 @@ class MetadataExtractor:
             )
         
         return collections
+    
+    def extract_temporal_extent(self, dataset: xr.Dataset, filename: Optional[str] = None) -> Optional[Dict[str, str]]:
+        """
+        Extract temporal extent from dataset time dimension or filename.
+        
+        Args:
+            dataset: xarray Dataset to extract temporal extent from
+            filename: Optional filename to parse date from if no time dimension
+            
+        Returns:
+            Dictionary with 'start' and 'end' ISO 8601 datetime strings, or None if no temporal info
+        """
+        import numpy as np
+        import re
+        from datetime import datetime, timedelta
+        
+        # Try to find time coordinate
+        time_names = ['time', 'Time', 'TIME', 't']
+        time_coord = None
+        
+        for name in time_names:
+            if name in dataset.coords:
+                time_coord = dataset.coords[name]
+                break
+            elif name in dataset.variables:
+                time_coord = dataset[name]
+                break
+        
+        if time_coord is not None:
+            try:
+                times = time_coord.values
+                if len(times) > 0:
+                    start_time = np.datetime_as_string(times[0], unit='s') + 'Z'
+                    end_time = np.datetime_as_string(times[-1], unit='s') + 'Z'
+                    logger.info(f"Extracted temporal extent from time dimension: {start_time} to {end_time}")
+                    return {"start": start_time, "end": end_time}
+            except Exception as e:
+                logger.warning(f"Failed to extract from time dimension: {e}")
+        
+        # Fallback 1: parse date from filename (A{YYYYDDD}{YYYYDDD}_...)
+        if filename:
+            try:
+                match = re.match(r'A(\d{4})(\d{3})(\d{4})(\d{3})', filename)
+                if match:
+                    start_year, start_doy = int(match.group(1)), int(match.group(2))
+                    end_year, end_doy = int(match.group(3)), int(match.group(4))
+                    start_date = datetime(start_year, 1, 1) + timedelta(days=start_doy - 1)
+                    end_date = datetime(end_year, 1, 1) + timedelta(days=end_doy - 1)
+                    start_time = start_date.isoformat() + 'Z'
+                    end_time = end_date.isoformat() + 'Z'
+                    logger.info(f"Extracted temporal extent from filename: {start_time} to {end_time}")
+                    return {"start": start_time, "end": end_time}
+            except Exception as e:
+                logger.warning(f"Failed to parse date from filename: {e}")
+        
+        # Fallback 2: use ingestion date (current time)
+        logger.warning("No temporal information found in dataset or filename, using ingestion date")
+        now = datetime.utcnow().isoformat() + 'Z'
+        return {"start": now, "end": now}
     
     def _format_collection_name(self, variable: xr.DataArray, var_name: str) -> str:
         """

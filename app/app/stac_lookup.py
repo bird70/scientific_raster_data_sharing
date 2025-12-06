@@ -75,10 +75,60 @@ def stac_search_point(variable: str, lon: float, lat: float, start: str, end: st
     """
     Search for STAC items by point location and variable.
     
-    Note: This function uses OpenSearch-specific queries and requires STAC_BACKEND="opensearch".
+    This function works with both OpenSearch and DynamoDB backends.
+    For DynamoDB, it uses a small bounding box around the point.
     """
+    # Use DynamoDB or dual backend client
+    if hasattr(stac_client, 'search_by_bbox'):
+        # Create a small bounding box around the point (approximately 1km radius)
+        # 1km ≈ 0.009 degrees at the equator
+        buffer = 0.009
+        bbox = [lon - buffer, lat - buffer, lon + buffer, lat + buffer]
+        
+        # Search using DynamoDB client
+        items = stac_client.search_by_bbox(
+            bbox=bbox,
+            start_datetime=start,
+            end_datetime=end,
+            limit=size * 2  # Get more items to filter by variable
+        )
+        
+        # Filter by variable if present in properties
+        filtered_items = []
+        for item in items:
+            properties = item.get('properties', {})
+            
+            # Check if variable is in the variables list
+            variables_list = properties.get('variables', [])
+            if variable in variables_list:
+                # Convert to OpenSearch-like format for backward compatibility
+                filtered_items.append({
+                    "_source": item
+                })
+                if len(filtered_items) >= size:
+                    break
+                continue
+            
+            # Check variable_metadata list for matching variable name
+            variable_metadata = properties.get('variable_metadata', [])
+            if isinstance(variable_metadata, list):
+                for var_meta in variable_metadata:
+                    if isinstance(var_meta, dict):
+                        if var_meta.get('name') == variable:
+                            filtered_items.append({
+                                "_source": item
+                            })
+                            break
+            
+            if len(filtered_items) >= size:
+                break
+        
+        logger.info(f"DynamoDB search found {len(filtered_items)} items for variable '{variable}' at ({lon}, {lat})")
+        return filtered_items
+    
+    # Fallback to OpenSearch for backward compatibility
     if client is None:
-        raise RuntimeError("stac_search_point requires STAC_BACKEND='opensearch'")
+        raise RuntimeError("stac_search_point requires STAC_BACKEND='opensearch' or DynamoDB client")
     
     body = {
       "query": {

@@ -41,6 +41,11 @@ variable "cognito_user_pool_id" {
   type = string
 }
 
+variable "frontend_website_endpoint" {
+  description = "S3 website endpoint for frontend"
+  type        = string
+}
+
 variable "alb_sg_id" {
   type    = string
   default = ""

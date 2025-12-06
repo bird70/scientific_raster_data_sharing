@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     
     # STAC Backend Configuration
     # Supported values: "dynamodb", "opensearch", "dual"
-    STAC_BACKEND: str = "opensearch"
+    STAC_BACKEND: str = "dynamodb"
     
     # DynamoDB Configuration - required when STAC_BACKEND is "dynamodb" or "dual"
     DYNAMODB_STAC_TABLE: str = ""
@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     
     # Logging Configuration
     LOG_LEVEL: str = "INFO"
+    
+    # Frontend Configuration - optional for CORS
+    CLOUDFRONT_DOMAIN: Optional[str] = None
+    CUSTOM_DOMAIN: Optional[str] = None
 
     model_config = {
         "env_file": ".env",

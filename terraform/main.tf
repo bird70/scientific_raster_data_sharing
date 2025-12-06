@@ -107,19 +107,30 @@ module "ecs" {
   tiles_desired_count        = var.ecs_desired_count_tiles
   timeseries_desired_count   = var.ecs_desired_count_timeseries
   dask_workers_desired_count = var.ecs_desired_count_tiles # Reuse tiles count for workers
+  frontend_website_endpoint  = module.frontend.website_endpoint
   tags                       = local.common_tags
 }
 
+# Frontend S3 bucket and CloudFront OAI
+module "frontend" {
+  source       = "./modules/frontend"
+  project_name = var.project_name
+  environment  = var.environment
+  tags         = local.common_tags
+}
+
 module "cloudfront" {
-  count           = var.alb_certificate_arn != "" && var.alb_certificate_arn != "arn:aws:acm:ap-southeast-2:123456789012:certificate/EXAMPLE" ? 1 : 0
-  source          = "./modules/cloudfront"
-  project_name    = var.project_name
-  alb_dns_name    = module.ecs.alb_dns_name
-  certificate_arn = var.alb_certificate_arn
-  domain_name     = var.domain_name
-  waf_acl_id      = var.waf_web_acl_id
-  price_class     = var.cloudfront_price_class
-  tags            = local.common_tags
+  count                           = var.alb_certificate_arn != "" && var.alb_certificate_arn != "arn:aws:acm:ap-southeast-2:123456789012:certificate/EXAMPLE" ? 1 : 0
+  source                          = "./modules/cloudfront"
+  project_name                    = var.project_name
+  alb_dns_name                    = module.ecs.alb_dns_name
+  certificate_arn                 = var.alb_certificate_arn
+  domain_name                     = var.domain_name
+  waf_acl_id                      = var.waf_web_acl_id
+  price_class                     = var.cloudfront_price_class
+  s3_bucket_regional_domain_name  = module.frontend.bucket_regional_domain_name
+  cloudfront_oai_path             = module.frontend.cloudfront_oai_path
+  tags                            = local.common_tags
 }
 
 module "monitoring" {

@@ -1,12 +1,12 @@
 {
     "family": "cog-generation",
-    "taskRoleArn": "arn:aws:iam::123456789101:role/cloud-scientific-raster-sharing-ecs-task-role",
-    "executionRoleArn": "arn:aws:iam::123456789101:role/cloud-scientific-raster-sharing-ecs-execution-role",
+    "taskRoleArn": "arn:aws:iam::PLACEHOLDER:role/cloud-scientific-raster-sharing-ecs-task-role",
+    "executionRoleArn": "arn:aws:iam::PLACEHOLDER:role/cloud-scientific-raster-sharing-ecs-execution-role",
     "networkMode": "awsvpc",
     "containerDefinitions": [
         {
             "name": "cog-generator",
-            "image": "123456789101.dkr.ecr.ap-southeast-2.amazonaws.com/cloud-scientific-raster-sharing-repo:latest",
+            "image": "PLACEHOLDER.dkr.ecr.ap-southeast-2.amazonaws.com/cloud-scientific-raster-sharing-repo:latest",
             "cpu": 0,
             "portMappings": [],
             "essential": true,

@@ -37,3 +37,13 @@ variable "tags" {
   description = "Tags to apply to all resources"
   default     = {}
 }
+
+variable "s3_bucket_regional_domain_name" {
+  type        = string
+  description = "Regional domain name of S3 bucket for frontend"
+}
+
+variable "cloudfront_oai_path" {
+  type        = string
+  description = "CloudFront Origin Access Identity path"
+}

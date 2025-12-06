@@ -351,15 +351,14 @@ class DynamoDBSTACClient:
             if collections:
                 filter_expr = Attr('collection').is_in(collections)
             
-            # Add datetime filter if specified
+            # Add datetime filter if specified - check for temporal overlap
+            # Item overlaps if: item.start_datetime <= query.end AND item.end_datetime >= query.start
             if start_datetime and end_datetime:
-                datetime_filter = Attr('datetime').between(start_datetime, end_datetime)
-                filter_expr = datetime_filter if filter_expr is None else filter_expr & datetime_filter
-            elif start_datetime:
-                datetime_filter = Attr('datetime').gte(start_datetime)
-                filter_expr = datetime_filter if filter_expr is None else filter_expr & datetime_filter
-            elif end_datetime:
-                datetime_filter = Attr('datetime').lte(end_datetime)
+                # Check if item's temporal extent overlaps with query range
+                datetime_filter = (
+                    (Attr('properties.start_datetime').lte(end_datetime) | Attr('datetime').lte(end_datetime)) &
+                    (Attr('properties.end_datetime').gte(start_datetime) | Attr('datetime').gte(start_datetime))
+                )
                 filter_expr = datetime_filter if filter_expr is None else filter_expr & datetime_filter
             
             # Scan table with filters

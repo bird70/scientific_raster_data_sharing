@@ -5,7 +5,8 @@ Reads STAC item from S3 and indexes it in DynamoDB (with optional OpenSearch sup
 import json
 import os
 import boto3
-from typing import Dict, Optional
+from decimal import Decimal
+from typing import Dict, Optional, Any
 
 s3_client = boto3.client('s3')
 sns_client = boto3.client('sns')
@@ -38,6 +39,28 @@ def get_opensearch_client():
     )
     
     return client
+
+def convert_floats_to_decimal(obj: Any) -> Any:
+    """
+    Recursively convert float values to Decimal for DynamoDB compatibility.
+    
+    DynamoDB doesn't support float types - it requires Decimal for numeric values.
+    This function walks through nested structures and converts all floats.
+    
+    Args:
+        obj: Object to convert (can be dict, list, float, or other)
+        
+    Returns:
+        Object with floats converted to Decimal
+    """
+    if isinstance(obj, list):
+        return [convert_floats_to_decimal(item) for item in obj]
+    elif isinstance(obj, dict):
+        return {key: convert_floats_to_decimal(value) for key, value in obj.items()}
+    elif isinstance(obj, float):
+        return Decimal(str(obj))
+    else:
+        return obj
 
 def validate_stac_item(item: Dict) -> None:
     """
@@ -90,6 +113,9 @@ def index_to_dynamodb(stac_item: Dict) -> Dict:
         "stac_version": stac_item.get("stac_version", "1.0.0"),
         "stac_extensions": stac_item.get("stac_extensions", [])
     }
+    
+    # Convert all floats to Decimal for DynamoDB compatibility
+    item = convert_floats_to_decimal(item)
     
     # Write to DynamoDB
     table.put_item(Item=item)

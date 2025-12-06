@@ -113,3 +113,20 @@ output "cluster_name" {
   description = "Name of the ECS cluster (for verification scripts)"
   value       = module.ecs.cluster_name
 }
+
+
+# Frontend outputs
+output "frontend_bucket_name" {
+  description = "Name of the S3 bucket for frontend static files"
+  value       = module.frontend.bucket_name
+}
+
+output "frontend_bucket_arn" {
+  description = "ARN of the frontend S3 bucket"
+  value       = module.frontend.bucket_arn
+}
+
+output "frontend_website_endpoint" {
+  description = "S3 website endpoint for frontend"
+  value       = module.frontend.website_endpoint
+}

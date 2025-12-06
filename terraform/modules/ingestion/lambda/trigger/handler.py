@@ -43,7 +43,13 @@ def lambda_handler(event, context):
             
             # Start Step Functions execution
             state_machine_arn = os.environ['STATE_MACHINE_ARN']
-            execution_name = key.replace('/', '-').replace('.nc', f'-{context.aws_request_id[:8]}')
+            # Extract filename without path and extension, truncate if needed
+            filename = key.split('/')[-1].replace('.nc', '')
+            # Truncate filename to ensure total length stays under 80 chars (leaving room for prefix and UUID)
+            max_filename_length = 60
+            if len(filename) > max_filename_length:
+                filename = filename[:max_filename_length]
+            execution_name = f"ingestion-{filename}-{context.aws_request_id[:8]}"
             
             response = sfn_client.start_execution(
                 stateMachineArn=state_machine_arn,

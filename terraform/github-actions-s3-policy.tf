@@ -2,12 +2,12 @@
 # This allows the GitHub Actions workflow to upload test files for enhanced smoke tests
 
 data "aws_iam_role" "github_actions" {
-  name = "GitHubActions-SciRaster-cloud-Role"
+  name = "GitHubActions-SciRaster-Platform-Role"
 }
 
 resource "aws_iam_policy" "github_actions_s3" {
   name        = "GitHubActions-S3-TestUpload"
-  description = "Allow GitHub Actions to upload test files to S3 raw bucket"
+  description = "Allow GitHub Actions to upload test files and deploy frontend to S3"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -16,10 +16,12 @@ resource "aws_iam_policy" "github_actions_s3" {
         Effect = "Allow"
         Action = [
           "s3:PutObject",
-          "s3:GetObject"
+          "s3:GetObject",
+          "s3:DeleteObject"
         ]
         Resource = [
-          "${module.data.s3_raw_bucket_arn}/*"
+          "${module.data.s3_raw_bucket_arn}/*",
+          "arn:aws:s3:::cloud-scientific-raster-sharing-frontend-dev/*"
         ]
       },
       {
@@ -28,7 +30,8 @@ resource "aws_iam_policy" "github_actions_s3" {
           "s3:ListBucket"
         ]
         Resource = [
-          module.data.s3_raw_bucket_arn
+          module.data.s3_raw_bucket_arn,
+          "arn:aws:s3:::cloud-scientific-raster-sharing-frontend-dev"
         ]
       },
       {

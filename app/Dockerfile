@@ -17,7 +17,10 @@ WORKDIR /app
 COPY app/requirements.txt .
 RUN uv pip install --system --no-cache -r requirements.txt
 
-COPY ./app /app/app
+# Copy application code - note the structure:
+# ./app/app -> /app/app (FastAPI application)
+# ./app/ingestion -> /app/ingestion (ingestion modules)
+COPY ./app/app /app/app
 COPY ./app/ingestion /app/ingestion
 
 # Healthcheck and run

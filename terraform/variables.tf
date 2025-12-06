@@ -11,7 +11,7 @@ variable "project_name" {
 variable "short_name" {
   type        = string
   description = "Short name for AWS resources with length limits"
-  default     = "cloud-sciraster"
+  default     = "dataplatform-sciraster"
 }
 
 variable "vpc_cidr" {
@@ -130,7 +130,7 @@ variable "timeseries_desired_count" {
 variable "dask_workers_min" {
   type        = number
   description = "Minimum number of Dask worker tasks"
-  default     = 2
+  default     = 1
 }
 
 variable "dask_workers_max" {
@@ -142,7 +142,7 @@ variable "dask_workers_max" {
 variable "opensearch_instance_count" {
   type        = number
   description = "Number of OpenSearch instances (1 for dev, 2+ for prod)"
-  default     = 2
+  default     = 1
 }
 
 variable "opensearch_instance_type" {
@@ -181,6 +181,6 @@ variable "stac_backend" {
   default     = "dynamodb"
   validation {
     condition     = contains(["dynamodb", "opensearch", "dual"], var.stac_backend)
-    error_message = "stac_backend must be one of: dynamodb, opensearch, dual"
+    error_message = "The stac_backend must be one of: dynamodb, opensearch, or dual."
   }
 }

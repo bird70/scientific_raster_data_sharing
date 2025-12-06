@@ -440,7 +440,7 @@ def convert_netcdf_to_zarr():
         # Extract scientific metadata
         logger.info("Extracting scientific metadata")
         metadata_extractor = MetadataExtractor()
-        extracted_metadata = metadata_extractor.extract_all_metadata(ds)
+        extracted_metadata = metadata_extractor.extract_all_metadata(ds, Path(input_key).name)
         
         # Build STAC metadata
         stac_builder = STACMetadataBuilder()
@@ -472,7 +472,8 @@ def convert_netcdf_to_zarr():
             "global_attributes": extracted_metadata.get("global_attributes", {}),
             "collections": extracted_metadata.get("collections", []),
             "stac_properties": stac_properties,
-            "collection_id": collection_id
+            "collection_id": collection_id,
+            "temporal": extracted_metadata.get("temporal")
         }
         
         # Write metadata to S3 for STAC creator to read
