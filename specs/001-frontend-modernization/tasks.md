@@ -24,7 +24,7 @@
 - [ ] T010 [P] Configure MSW handlers for search/tiles/timeseries in `frontend/src/mocks/handlers.ts` and test setup
 - [ ] T011 Add base theming + design tokens in `frontend/src/styles/theme.css` and layout CSS
 - [ ] T012 Add error boundary and global toast/notices in `frontend/src/components/common/ErrorBoundary.tsx`
-- [ ] T047 Implement user preferences store (default base map, layer order, color schemes) with localStorage persistence in `frontend/src/state/preferencesStore.ts`
+- [X] T047 Implement user preferences store (default base map, layer order, color schemes) with localStorage persistence in `frontend/src/state/preferencesStore.ts`
 - [ ] T048 Add preferences load/save UI hooks in map/search components with validation to avoid sensitive data storage
 
 **Checkpoint**: Foundation ready; user stories can proceed.
