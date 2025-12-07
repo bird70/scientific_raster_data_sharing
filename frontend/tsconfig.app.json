@@ -21,11 +21,11 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
-    "types": ["node", "vite/client"],
+    "types": ["node", "vite/client", "vitest", "@testing-library/jest-dom"],
     "baseUrl": "./src",
     "paths": {
       "@/*": ["./*"]
     }
   },
-  "include": ["src"]
+  "include": ["src", "tests"]
 }

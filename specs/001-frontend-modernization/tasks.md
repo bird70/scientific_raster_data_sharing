@@ -41,7 +41,7 @@
 - [X] T015 [US1] Render results list with cards (title, thumbnail, temporal/spatial extent) in `frontend/src/components/search/SearchResults.tsx`
 - [X] T016 [US1] Highlight footprint on hover via map preview stub in `frontend/src/components/search/ResultFootprintPreview.tsx`
 - [X] T017 [US1] Add empty/error/loading states for search results
-- [ ] T018 [P] [US1] Tests: form validation + request payload + result rendering in `frontend/tests/search/SearchForm.test.tsx`
+- [X] T018 [P] [US1] Tests: form validation + request payload + result rendering in `frontend/tests/search/SearchForm.test.tsx`
 
 ---
 

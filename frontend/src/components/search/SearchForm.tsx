@@ -46,9 +46,10 @@ export function SearchForm({ filters, collections, isLoading, onFiltersChange, o
       }}
     >
       <div>
-        <label className="block text-sm font-semibold text-gray-800 mb-2">Keywords</label>
+        <label className="block text-sm font-semibold text-gray-800 mb-2" htmlFor="search-keywords">Keywords</label>
         <input
           type="text"
+          id="search-keywords"
           value={filters.searchText}
           onChange={(e) => updateField('searchText', e.target.value)}
           placeholder="e.g. temperature, precipitation"
@@ -85,18 +86,20 @@ export function SearchForm({ filters, collections, isLoading, onFiltersChange, o
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block text-sm font-semibold text-gray-800 mb-2">Start date</label>
+          <label className="block text-sm font-semibold text-gray-800 mb-2" htmlFor="search-start-date">Start date</label>
           <input
             type="date"
+            id="search-start-date"
             value={filters.dateRange?.[0]?.toISOString().split('T')[0] || ''}
             onChange={(e) => handleDateChange(0, e.target.value)}
             className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white shadow-sm"
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-800 mb-2">End date</label>
+          <label className="block text-sm font-semibold text-gray-800 mb-2" htmlFor="search-end-date">End date</label>
           <input
             type="date"
+            id="search-end-date"
             value={filters.dateRange?.[1]?.toISOString().split('T')[0] || ''}
             onChange={(e) => handleDateChange(1, e.target.value)}
             className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm bg-white shadow-sm"
@@ -105,9 +108,10 @@ export function SearchForm({ filters, collections, isLoading, onFiltersChange, o
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-800 mb-2">Variables (comma-separated)</label>
+        <label className="block text-sm font-semibold text-gray-800 mb-2" htmlFor="search-variables">Variables (comma-separated)</label>
         <input
           type="text"
+          id="search-variables"
           value={filters.variables.join(', ')}
           onChange={handleVariableChange}
           placeholder="temperature, precipitation"
@@ -122,6 +126,7 @@ export function SearchForm({ filters, collections, isLoading, onFiltersChange, o
             <input
               key={label}
               type="number"
+              id={`bbox-${label}`}
               value={filters.bbox ? filters.bbox[idx] : ''}
               onChange={(e) => handleBboxChange(idx, e.target.value)}
               placeholder={label}
