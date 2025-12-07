@@ -2,10 +2,11 @@
  * Timeseries chart component using Plotly.js
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import Plot from 'react-plotly.js';
 import type { TimeseriesData } from '../types';
 import type { ColorScheme } from '../store/preferences';
+import { decimateTimeseries, checkRenderThreshold, truncateToMax } from '../utils/plotlyPerformance';
 
 interface TimeseriesChartProps {
   data: TimeseriesData | null;
@@ -14,7 +15,52 @@ interface TimeseriesChartProps {
   colorScheme?: ColorScheme;
 }
 
+/**
+ * Performance warning banner component with auto-dismiss
+ * Using component with key ensures it remounts and resets timer for new warnings
+ */
+function PerformanceWarningBanner({ message }: { message: string }) {
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setVisible(false), 5000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (!visible) return null;
+
+  return (
+    <div className="absolute top-0 left-0 right-0 bg-yellow-50 border-b border-yellow-200 px-4 py-2 z-20 flex items-center justify-between">
+      <div className="flex items-center space-x-2">
+        <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <span className="text-sm text-yellow-800">{message}</span>
+      </div>
+      <button
+        onClick={() => setVisible(false)}
+        className="text-yellow-600 hover:text-yellow-800"
+        aria-label="Dismiss warning"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 export function TimeseriesChart({ data, isLoading = false, onExport, colorScheme = 'default' }: TimeseriesChartProps) {
+  // Calculate performance warning from data (derived state)
+  const performanceWarning = useMemo(() => {
+    if (!data?.series) return null;
+
+    const totalPoints = data.series.reduce((sum, s) => sum + s.times.length, 0);
+    const threshold = checkRenderThreshold(totalPoints);
+
+    return threshold.shouldWarn && threshold.message ? threshold.message : null;
+  }, [data]);
+
   const palette = useMemo(() => {
     if (colorScheme === 'high-contrast') {
       return {
@@ -38,26 +84,46 @@ export function TimeseriesChart({ data, isLoading = false, onExport, colorScheme
     const series = data?.series || [];
     if (series.length === 0) return [];
 
-    return series.map((s, idx) => ({
-      x: s.times,
-      y: s.values,
-      type: 'scatter' as const,
-      mode: 'lines+markers' as const,
-      name: s.label || s.variable || `Series ${idx + 1}`,
-      line: {
-        color: palette.line,
-        width: 2,
-      },
-      marker: {
-        color: palette.marker,
-        size: 4,
-      },
-      hovertemplate:
-        '<b>%{fullData.name}</b><br>' +
-        'Time: %{x}<br>' +
-        'Value: %{y:.4f}' + (s.units ? ` ${s.units}` : '') +
-        '<extra></extra>',
-    }));
+    return series.map((s, idx) => {
+      let times = s.times;
+      let values = s.values;
+
+      // Check performance threshold
+      const totalPoints = times.length;
+      const threshold = checkRenderThreshold(totalPoints);
+
+      if (threshold.shouldDecimate) {
+        // Truncate if exceeds absolute max
+        times = truncateToMax(times);
+        values = truncateToMax(values);
+
+        // Apply decimation
+        const decimated = decimateTimeseries(times, values);
+        times = decimated.times;
+        values = decimated.values;
+      }
+
+      return {
+        x: times,
+        y: values,
+        type: 'scatter' as const,
+        mode: 'lines+markers' as const,
+        name: s.label || s.variable || `Series ${idx + 1}`,
+        line: {
+          color: palette.line,
+          width: 2,
+        },
+        marker: {
+          color: palette.marker,
+          size: 4,
+        },
+        hovertemplate:
+          '<b>%{fullData.name}</b><br>' +
+          'Time: %{x}<br>' +
+          'Value: %{y:.4f}' + (s.units ? ` ${s.units}` : '') +
+          '<extra></extra>',
+      };
+    });
   }, [data, palette]);
 
   const layout = useMemo(() => ({
@@ -108,7 +174,7 @@ export function TimeseriesChart({ data, isLoading = false, onExport, colorScheme
     displaylogo: false,
     toImageButtonOptions: {
       format: 'png' as const,
-      filename: `timeseries_${data?.metadata?.variable || 'data'}`,
+      filename: `timeseries_${data?.series?.[0]?.variable || 'data'}`,
       height: 500,
       width: 800,
       scale: 1,
@@ -157,8 +223,16 @@ export function TimeseriesChart({ data, isLoading = false, onExport, colorScheme
 
   return (
     <div className="h-full bg-white relative">
+      {/* Performance warning banner - key ensures it remounts on new warning */}
+      {performanceWarning && (
+        <PerformanceWarningBanner 
+          key={performanceWarning} 
+          message={performanceWarning} 
+        />
+      )}
+
       {/* Chart container */}
-      <div className="w-full h-full">
+      <div className="w-full h-full" style={{ paddingTop: performanceWarning ? '3rem' : '0' }}>
         <Plot
           data={plotData}
           layout={layout}

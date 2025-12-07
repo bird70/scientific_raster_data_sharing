@@ -93,11 +93,51 @@ See `src/utils/map/MapAdapter.ts` for the interface definition.
 - TypeScript strict mode is enabled for better type safety
 - ESLint is configured for code quality
 
+## API Integration
+
+The frontend integrates with the following REST endpoints (see `specs/001-frontend-modernization/contracts/rest.md` for full API specification):
+
+- **STAC Search**: `POST /api/v1/stac/search` - Search catalog by keywords, bbox, date range, variables
+- **Tile Service**: `GET /tiles/{collection}/{z}/{x}/{y}.png?asset={asset}` - Fetch raster tiles for map visualization
+- **Timeseries**: `POST /api/v1/timeseries` - Query timeseries data at a specific location
+
+All endpoints require `Authorization: Bearer <JWT>` header (AWS Cognito authentication). The application handles:
+- Token refresh and injection
+- Error normalization and user-friendly messages
+- Rate limiting with exponential backoff on 429 responses
+- Request timeout (10s) with retry guidance
+
+For detailed request/response schemas and error handling patterns, refer to `specs/001-frontend-modernization/contracts/rest.md`.
+
+## Testing
+
+```bash
+# Run unit + integration tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run E2E tests (Playwright)
+npm run test:e2e
+```
+
+All components include comprehensive test coverage with React Testing Library and Mock Service Worker (MSW) for API mocking.
+
 ## Building for Production
 
 ```bash
 npm run build
 ```
+
+The production build outputs to `frontend/dist/` and is ready for deployment to S3 + CloudFront.
+
+## Quick Reference
+
+For detailed setup instructions and deployment workflows, see:
+- **Quickstart Guide**: `specs/001-frontend-modernization/quickstart.md`
+- **API Contracts**: `specs/001-frontend-modernization/contracts/rest.md`
+- **Technical Plan**: `specs/001-frontend-modernization/plan.md`
 
 The production build will be output to the `dist/` directory and can be deployed to S3 + CloudFront.
 

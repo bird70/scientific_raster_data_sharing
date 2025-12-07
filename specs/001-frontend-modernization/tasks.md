@@ -108,11 +108,11 @@
 
 ## Phase 9: Polish & Cross-Cutting
 
-- [ ] T040 [P] Documentation updates referencing `quickstart.md` and `contracts/rest.md`
-- [ ] T041 Performance pass: tile request batching/caching and Plotly render thresholds
-- [ ] T042 [P] Accessibility: focus states, ARIA labels on forms/map controls in `frontend/src/components/`
-- [ ] T043 Security review: ensure tokens never stored beyond memory/localStorage non-sensitive prefs; audit error messages
-- [ ] T044 [P] Final E2E happy-path: search → map → timeseries flow in `frontend/tests/e2e/HappyPath.spec.ts`
+- [X] T040 [P] Documentation updates referencing `quickstart.md` and `contracts/rest.md`
+- [X] T041 Performance pass: tile request batching/caching and Plotly render thresholds
+- [X] T042 [P] Accessibility: focus states, ARIA labels on forms/map controls in `frontend/src/components/`
+- [X] T043 Security review: ensure tokens never stored beyond memory/localStorage non-sensitive prefs; audit error messages
+- [X] T044 [P] Final E2E happy-path: search → map → timeseries flow in `frontend/tests/e2e/HappyPath.spec.ts`
 - [X] T049 Cross-cutting error UX: shared error/notification pattern with retry for search/browse/map/timeseries; display within 500ms and log correlation IDs
 
 ---

@@ -1,8 +1,23 @@
+import { tileCache } from '../utils/tileCache';
+
 const API_BASE = ((import.meta as ImportMeta & { env: { VITE_API_BASE_URL?: string } }).env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '')
 
 export function buildTileUrl(collection: string, asset?: string) {
+  const cacheKey = `${collection}:${asset || 'default'}`;
+  
+  // Check cache first
+  const cached = tileCache.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+
   const assetQuery = asset ? `?asset=${encodeURIComponent(asset)}` : ''
-  return `${API_BASE}/tiles/${collection}/{z}/{x}/{y}.png${assetQuery}`
+  const url = `${API_BASE}/tiles/${collection}/{z}/{x}/{y}.png${assetQuery}`;
+  
+  // Cache the URL
+  tileCache.set(cacheKey, url);
+  
+  return url;
 }
 
 export interface RasterLayerOptions {

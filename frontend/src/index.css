@@ -5,6 +5,8 @@
 @import './styles/theme.css';
 /* Responsive layout helpers */
 @import './styles/responsive.css';
+/* Accessibility styles */
+@import './styles/accessibility.css';
 
 /* MapLibre GL CSS */
 @import 'maplibre-gl/dist/maplibre-gl.css';

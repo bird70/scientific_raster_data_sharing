@@ -9,6 +9,14 @@ function App() {
 
   return (
     <ErrorBoundary>
+      {/* Skip links for keyboard navigation */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+      <a href="#map-container" className="skip-link">
+        Skip to map
+      </a>
+      
       <AppRoutes />
       <ToastContainer toasts={toasts} onClose={removeToast} />
     </ErrorBoundary>
