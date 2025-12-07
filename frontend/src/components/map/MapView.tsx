@@ -5,6 +5,7 @@ import { LayerControls } from './LayerControls'
 import { LegendAndTooltip } from './LegendAndTooltip'
 import { buildTileUrl } from '@/services/tiles'
 import { useMapStore } from '@/state/mapStore'
+import { ResponsiveLayout } from './ResponsiveLayout'
 
 interface MapViewProps {
   legend?: {
@@ -141,24 +142,27 @@ export function MapView({ legend }: MapViewProps) {
   }
 
   return (
-    <div className="grid grid-cols-3 gap-4 h-full" data-testid="map-view">
-      <div className="col-span-2 relative border border-gray-200 rounded-lg overflow-hidden shadow-sm">
-        <div ref={mapContainer} className="w-full h-[600px]" />
-        <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-md p-3">
-          <p className="text-sm font-semibold text-gray-900">Active layers: {layers.filter((l) => l.visible).length}</p>
+    <ResponsiveLayout
+      mapSlot={(
+        <div className="h-full w-full relative">
+          <div ref={mapContainer} className="map-frame" />
+          <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm border border-gray-200 rounded-md p-3 shadow-sm">
+            <p className="text-sm font-semibold text-gray-900">Active layers: {layers.filter((l) => l.visible).length}</p>
+          </div>
         </div>
-      </div>
-
-      <div className="col-span-1 space-y-4">
-        <LayerControls
-          layers={layers}
-          onOpacityChange={handleOpacityChange}
-          onToggleVisibility={handleToggle}
-          onRemove={handleRemove}
-          onVariableChange={handleVariableChange}
-        />
-        <LegendAndTooltip legend={legend} hover={hoverValue} />
-      </div>
-    </div>
+      )}
+      sidebar={(
+        <div className="space-y-4">
+          <LayerControls
+            layers={layers}
+            onOpacityChange={handleOpacityChange}
+            onToggleVisibility={handleToggle}
+            onRemove={handleRemove}
+            onVariableChange={handleVariableChange}
+          />
+          <LegendAndTooltip legend={legend} hover={hoverValue} />
+        </div>
+      )}
+    />
   )
 }

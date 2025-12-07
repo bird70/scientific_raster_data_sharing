@@ -99,10 +99,10 @@
 **Goal**: Responsive layout for tablet/mobile (nav, map, charts).
 **Independent Test**: On mobile, nav collapses, map fits viewport, touch gestures work, charts remain readable.
 
-- [ ] T036 [P] [US6] Add responsive breakpoints and layout CSS in `frontend/src/styles/responsive.css`
-- [ ] T037 [US6] Mobile nav (hamburger/drawer) in `frontend/src/components/layout/MobileNav.tsx`
-- [ ] T038 [US6] Tablet/mobile map layout adjustments (drawer controls) in `frontend/src/components/map/ResponsiveLayout.tsx`
-- [ ] T039 [P] [US6] Tests: responsive layout snapshot/interaction in `frontend/tests/responsive/ResponsiveLayout.test.tsx`
+- [X] T036 [P] [US6] Add responsive breakpoints and layout CSS in `frontend/src/styles/responsive.css`
+- [X] T037 [US6] Mobile nav (hamburger/drawer) in `frontend/src/components/layout/MobileNav.tsx`
+- [X] T038 [US6] Tablet/mobile map layout adjustments (drawer controls) in `frontend/src/components/map/ResponsiveLayout.tsx`
+- [X] T039 [P] [US6] Tests: responsive layout snapshot/interaction in `frontend/tests/responsive/ResponsiveLayout.test.tsx`
 
 ---
 

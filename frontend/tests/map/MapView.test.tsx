@@ -71,8 +71,8 @@ describe('MapView', () => {
 
   it('renders map view and legend', () => {
     render(<MapView legend={{ min: 1, max: 10, units: 'K' }} />)
-    expect(screen.getByTestId('map-view')).toBeInTheDocument()
-    expect(screen.getByText(/Legend/)).toBeInTheDocument()
+    expect(screen.getByTestId('map-canvas')).toBeInTheDocument()
+    expect(screen.getByTestId('legend-tooltip')).toBeInTheDocument()
     expect(screen.getByText(/Min/)).toBeInTheDocument()
     expect(screen.getByText(/10/)).toBeInTheDocument()
   })

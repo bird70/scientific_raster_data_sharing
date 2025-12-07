@@ -2,16 +2,25 @@
  * Main layout component with header and navigation
  */
 
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { MobileNav } from './layout/MobileNav';
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 export function Layout({ children }: LayoutProps) {
+  const [isMobileNavOpen, setMobileNavOpen] = useState(false);
+
+  const links = [
+    { label: 'Explorer', to: '/' },
+    { label: 'Browse', to: '/browse' },
+    { label: 'About', to: '/about' },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="app-shell">
       {/* Header with gradient background */}
       <header className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -69,8 +78,9 @@ export function Layout({ children }: LayoutProps) {
             <div className="md:hidden">
               <button
                 type="button"
-                className="text-white hover:bg-white/20 p-2 rounded-lg"
+                className="mobile-nav-trigger"
                 aria-label="Open menu"
+                onClick={() => setMobileNavOpen(true)}
               >
                 <svg
                   className="w-6 h-6"
@@ -90,6 +100,12 @@ export function Layout({ children }: LayoutProps) {
           </div>
         </div>
       </header>
+
+      <MobileNav
+        isOpen={isMobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
+        links={links}
+      />
 
       {/* Main content */}
       <main className="flex-1 overflow-hidden">
