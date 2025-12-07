@@ -12,6 +12,8 @@ import { VariableSelector } from '../components/VariableSelector';
 import { useTimeAnimation } from '../hooks/useTimeAnimation';
 import { useTimeseries } from '../hooks/useTimeseries';
 import { useAppStore } from '../store';
+import { usePreferencesStore } from '../store/preferences';
+import { ErrorNotice } from '../components/ErrorNotice';
 import type { Dataset } from '../types';
 
 export function Explorer() {
@@ -32,10 +34,12 @@ export function Explorer() {
     data: timeseriesData,
     isLoading: isLoadingTimeseries,
     error: timeseriesError,
+    lastError: timeseriesLastError,
     fetchTimeseries,
     exportData,
     clearData: clearTimeseriesData,
   } = useTimeseries();
+  const colorScheme = usePreferencesStore((state) => state.colorScheme);
 
   // Generate mock time steps for demonstration
   // In production, these would come from the dataset metadata
@@ -262,9 +266,20 @@ export function Explorer() {
               
               {/* Error display */}
               {timeseriesError && (
-                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-                  <p className="text-xs text-red-800 font-medium">Error:</p>
-                  <p className="text-xs text-red-700 mt-1">{timeseriesError}</p>
+                <div className="mt-4">
+                  <ErrorNotice
+                    title="Timeseries request failed"
+                    message={timeseriesError}
+                    correlationId={timeseriesLastError?.correlationId}
+                    onRetry={
+                      timeseriesLastError?.retryable &&
+                      selectedPoint &&
+                      selectedDataset &&
+                      selectedVariable
+                        ? () => fetchTimeseries(selectedPoint, selectedDataset, selectedVariable)
+                        : undefined
+                    }
+                  />
                 </div>
               )}
             </div>
@@ -276,6 +291,7 @@ export function Explorer() {
               data={timeseriesData}
               isLoading={isLoadingTimeseries}
               onExport={exportData}
+              colorScheme={colorScheme}
             />
           </div>
         </div>

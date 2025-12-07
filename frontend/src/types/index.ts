@@ -21,7 +21,7 @@ export interface Dataset {
     cog: string;
     zarr: string;
   };
-  properties?: Record<string, any>;
+  properties?: Record<string, unknown>;
 }
 
 export interface Variable {

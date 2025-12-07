@@ -5,11 +5,13 @@
 import { useState, useCallback } from 'react';
 import { apiClient } from '../api/client';
 import type { TimeseriesData, LatLng, Dataset } from '../types';
+import { ApiError, formatErrorMessage, normalizeApiError } from '../utils/errors';
 
 export function useTimeseries() {
   const [data, setData] = useState<TimeseriesData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastError, setLastError] = useState<ApiError | null>(null);
 
   const fetchTimeseries = useCallback(async (
     point: LatLng,
@@ -36,9 +38,12 @@ export function useTimeseries() {
       });
 
       setData(timeseriesData);
-    } catch (err: any) {
-      const errorMessage = err.response?.data?.detail || err.message || 'Failed to fetch timeseries data';
+      setLastError(null);
+    } catch (err: unknown) {
+      const normalized = err instanceof ApiError ? err : new ApiError(normalizeApiError(err));
+      const errorMessage = formatErrorMessage(normalized);
       setError(errorMessage);
+      setLastError(normalized);
       setData(null);
     } finally {
       setIsLoading(false);
@@ -83,21 +88,25 @@ export function useTimeseries() {
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
       }
-    } catch (err: any) {
-      console.error('Export failed:', err);
-      setError(`Export failed: ${err.message}`);
+    } catch (err: unknown) {
+      const normalized = err instanceof ApiError ? err : new ApiError(normalizeApiError(err));
+      console.error('Export failed:', normalized.message);
+      setError(`Export failed: ${normalized.message}`);
+      setLastError(normalized);
     }
   }, [data]);
 
   const clearData = useCallback(() => {
     setData(null);
     setError(null);
+    setLastError(null);
   }, []);
 
   return {
     data,
     isLoading,
     error,
+    lastError,
     fetchTimeseries,
     exportData,
     clearData,

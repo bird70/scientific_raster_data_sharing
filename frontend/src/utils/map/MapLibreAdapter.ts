@@ -189,8 +189,10 @@ export class MapLibreAdapter implements MapAdapter {
     console.log('Drawing disabled');
   }
 
-  onDrawComplete(_callback: (geometry: any) => void): () => void {
+  onDrawComplete(callback: (geometry: unknown) => void): () => void {
     console.log('Draw complete handler registered');
+    // Placeholder to demonstrate callback usage until drawing is wired
+    void callback;
     return () => {
       console.log('Draw complete handler removed');
     };

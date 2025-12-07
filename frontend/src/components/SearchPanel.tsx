@@ -2,9 +2,21 @@
  * Search panel component with filters for dataset discovery
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, ChangeEvent, useRef } from 'react';
 import { apiClient } from '../api/client';
 import type { Dataset, SearchFilters } from '../types';
+import { ApiError, formatErrorMessage, normalizeApiError } from '../utils/errors';
+import { ErrorNotice } from './ErrorNotice';
+
+type SearchParams = {
+  start_date?: string;
+  end_date?: string;
+  bbox?: string;
+  variables?: string[];
+  collections?: string[];
+  limit: number;
+  offset: number;
+};
 
 interface SearchPanelProps {
   onDatasetSelect: (dataset: Dataset) => void;
@@ -22,8 +34,9 @@ export function SearchPanel({ onDatasetSelect }: SearchPanelProps) {
   const [results, setResults] = useState<Dataset[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastError, setLastError] = useState<ApiError | null>(null);
   const [collections, setCollections] = useState<string[]>([]);
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load available collections on mount
   useEffect(() => {
@@ -35,7 +48,10 @@ export function SearchPanel({ onDatasetSelect }: SearchPanelProps) {
       const cols = await apiClient.getCollections();
       setCollections(cols);
     } catch (err) {
-      console.error('Failed to load collections:', err);
+      const normalized = err instanceof ApiError ? err : new ApiError(normalizeApiError(err));
+      setError(formatErrorMessage(normalized));
+      setLastError(normalized);
+      console.error('Failed to load collections:', normalized.message);
     }
   };
 
@@ -45,7 +61,7 @@ export function SearchPanel({ onDatasetSelect }: SearchPanelProps) {
     setError(null);
 
     try {
-      const params: any = {
+      const params: SearchParams = {
         limit: 50,
         offset: 0,
       };
@@ -70,8 +86,11 @@ export function SearchPanel({ onDatasetSelect }: SearchPanelProps) {
 
       const response = await apiClient.searchDatasets(params);
       setResults(response.items);
-    } catch (err: any) {
-      setError(err.message || 'Failed to search datasets');
+      setLastError(null);
+    } catch (err: unknown) {
+      const normalized = err instanceof ApiError ? err : new ApiError(normalizeApiError(err));
+      setError(formatErrorMessage(normalized));
+      setLastError(normalized);
       setResults([]);
     } finally {
       setIsLoading(false);
@@ -80,26 +99,26 @@ export function SearchPanel({ onDatasetSelect }: SearchPanelProps) {
 
   // Trigger search with debouncing
   useEffect(() => {
-    if (searchTimeout) {
-      clearTimeout(searchTimeout);
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
     }
 
     const timeout = setTimeout(() => {
       performSearch();
     }, 500); // 500ms debounce
 
-    setSearchTimeout(timeout);
+    searchTimeoutRef.current = timeout;
 
     return () => {
       if (timeout) clearTimeout(timeout);
     };
-  }, [filters]);
+  }, [filters, performSearch]);
 
   const handleCollectionToggle = (collection: string) => {
-    setFilters((prev) => ({
+    setFilters((prev: SearchFilters) => ({
       ...prev,
       collections: prev.collections.includes(collection)
-        ? prev.collections.filter((c) => c !== collection)
+        ? prev.collections.filter((c: string) => c !== collection)
         : [...prev.collections, collection],
     }));
   };
@@ -125,8 +144,8 @@ export function SearchPanel({ onDatasetSelect }: SearchPanelProps) {
             type="text"
             placeholder="Search datasets..."
             value={filters.searchText}
-            onChange={(e) =>
-              setFilters((prev) => ({ ...prev, searchText: e.target.value }))
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setFilters((prev: SearchFilters) => ({ ...prev, searchText: e.target.value }))
             }
             className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm"
           />
@@ -235,8 +254,13 @@ export function SearchPanel({ onDatasetSelect }: SearchPanelProps) {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-3">
-            <p className="text-sm text-red-800">{error}</p>
+          <div className="mb-3">
+            <ErrorNotice
+              message={error}
+              correlationId={lastError?.correlationId}
+              onRetry={lastError?.retryable ? performSearch : undefined}
+              title="Search failed"
+            />
           </div>
         )}
 

@@ -23,6 +23,18 @@ venv/
 ENV/
 env/
 
+# Node / Frontend
+node_modules/
+frontend/node_modules/
+dist/
+build/
+frontend/dist/
+frontend/build/
+coverage/
+*.log
+.env
+.env.*
+
 # IDE
 .vscode/
 .idea/

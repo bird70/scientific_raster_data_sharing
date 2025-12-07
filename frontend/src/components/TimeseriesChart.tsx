@@ -5,14 +5,35 @@
 import { useMemo } from 'react';
 import Plot from 'react-plotly.js';
 import type { TimeseriesData } from '../types';
+import type { ColorScheme } from '../store/preferences';
 
 interface TimeseriesChartProps {
   data: TimeseriesData | null;
   isLoading?: boolean;
   onExport?: (format: 'csv' | 'json') => void;
+  colorScheme?: ColorScheme;
 }
 
-export function TimeseriesChart({ data, isLoading = false, onExport }: TimeseriesChartProps) {
+export function TimeseriesChart({ data, isLoading = false, onExport, colorScheme = 'default' }: TimeseriesChartProps) {
+  const palette = useMemo(() => {
+    if (colorScheme === 'high-contrast') {
+      return {
+        line: '#111827',
+        marker: '#f97316',
+        grid: '#d1d5db',
+        background: '#f9fafb',
+        paper: '#ffffff',
+      };
+    }
+    return {
+      line: '#3b82f6',
+      marker: '#3b82f6',
+      grid: '#f3f4f6',
+      background: 'white',
+      paper: 'white',
+    };
+  }, [colorScheme]);
+
   const plotData = useMemo(() => {
     if (!data || data.times.length === 0) return [];
 
@@ -23,11 +44,11 @@ export function TimeseriesChart({ data, isLoading = false, onExport }: Timeserie
       mode: 'lines+markers' as const,
       name: data.metadata?.variable || 'Value',
       line: {
-        color: '#3b82f6',
+        color: palette.line,
         width: 2,
       },
       marker: {
-        color: '#3b82f6',
+        color: palette.marker,
         size: 4,
       },
       hovertemplate: '<b>%{fullData.name}</b><br>' +
@@ -35,7 +56,7 @@ export function TimeseriesChart({ data, isLoading = false, onExport }: Timeserie
                     'Value: %{y:.4f}' + (data.metadata?.units ? ` ${data.metadata.units}` : '') +
                     '<extra></extra>',
     }];
-  }, [data]);
+  }, [data, palette]);
 
   const layout = useMemo(() => ({
     title: {
@@ -46,7 +67,7 @@ export function TimeseriesChart({ data, isLoading = false, onExport }: Timeserie
       title: { text: 'Time' },
       type: 'date' as const,
       showgrid: true,
-      gridcolor: '#f3f4f6',
+      gridcolor: palette.grid,
     },
     yaxis: {
       title: {
@@ -55,15 +76,15 @@ export function TimeseriesChart({ data, isLoading = false, onExport }: Timeserie
           : data?.metadata?.variable || 'Value',
       },
       showgrid: true,
-      gridcolor: '#f3f4f6',
+      gridcolor: palette.grid,
     },
-    plot_bgcolor: 'white',
-    paper_bgcolor: 'white',
+    plot_bgcolor: palette.background,
+    paper_bgcolor: palette.paper,
     margin: { l: 60, r: 40, t: 60, b: 60 },
     showlegend: false,
     hovermode: 'x unified' as const,
     autosize: true,
-  }), [data]);
+  }), [data, palette]);
 
   const config = useMemo(() => ({
     responsive: true,

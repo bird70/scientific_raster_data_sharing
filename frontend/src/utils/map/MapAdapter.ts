@@ -47,7 +47,7 @@ export interface MapAdapter {
   // Drawing tools
   enableDrawing(mode: 'polygon' | 'point'): void;
   disableDrawing(): void;
-  onDrawComplete(callback: (geometry: any) => void): () => void;
+  onDrawComplete(callback: (geometry: unknown) => void): () => void;
   
   // Utility
   resize(): void;

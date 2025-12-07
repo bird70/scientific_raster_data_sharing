@@ -4,7 +4,27 @@
 
 import type { Dataset, Variable } from '../types';
 
-export function transformStacItemToDataset(stacItem: any): Dataset {
+interface VariableMetadata {
+  name?: string;
+  long_name?: string;
+  description?: string;
+  units?: string;
+}
+
+interface StacItem {
+  id?: string;
+  collection?: string;
+  bbox?: [number, number, number, number];
+  assets?: Record<string, { href?: string } | undefined>;
+  properties?: {
+    title?: string;
+    description?: string;
+    datetime?: string;
+    variable_metadata?: VariableMetadata[];
+  } & Record<string, unknown>;
+}
+
+export function transformStacItemToDataset(stacItem: StacItem): Dataset {
   // Extract variables from properties
   const variables: Variable[] = [];
   if (stacItem.properties?.variable_metadata) {
