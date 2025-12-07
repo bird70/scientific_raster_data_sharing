@@ -17,13 +17,13 @@
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
-- [ ] T006 Add global layout shell with router entry in `frontend/src/main.tsx` and `frontend/src/routes.tsx`
+- [X] T006 Add global layout shell with router entry in `frontend/src/main.tsx` and `frontend/src/routes.tsx`
 - [ ] T007 [P] Implement API client wrapper with Cognito JWT injection and error normalization in `frontend/src/services/apiClient.ts`
 - [ ] T008 [P] Add auth provider using Amplify Auth in `frontend/src/state/auth.tsx`
-- [ ] T009 [P] Add state stores for map/layers/timeseries (Zustand) in `frontend/src/state/mapStore.ts` and `frontend/src/state/timeseriesStore.ts`
+- [X] T009 [P] Add state stores for map/layers/timeseries (Zustand) in `frontend/src/state/mapStore.ts` and `frontend/src/state/timeseriesStore.ts`
 - [ ] T010 [P] Configure MSW handlers for search/tiles/timeseries in `frontend/src/mocks/handlers.ts` and test setup
 - [ ] T011 Add base theming + design tokens in `frontend/src/styles/theme.css` and layout CSS
-- [ ] T012 Add error boundary and global toast/notices in `frontend/src/components/common/ErrorBoundary.tsx`
+- [X] T012 Add error boundary and global toast/notices in `frontend/src/components/common/ErrorBoundary.tsx`
 - [X] T047 Implement user preferences store (default base map, layer order, color schemes) with localStorage persistence in `frontend/src/state/preferencesStore.ts`
 - [X] T048 Add preferences load/save UI hooks in map/search components with validation to avoid sensitive data storage
 

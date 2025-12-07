@@ -1,13 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import type { MapLayer } from '@/types'
 import { LayerControls } from './LayerControls'
 import { LegendAndTooltip } from './LegendAndTooltip'
 import { buildTileUrl } from '@/services/tiles'
+import { useMapStore } from '@/state/mapStore'
 
 interface MapViewProps {
-  initialLayers?: MapLayer[]
   legend?: {
     min?: number
     max?: number
@@ -16,11 +15,19 @@ interface MapViewProps {
   }
 }
 
-export function MapView({ initialLayers = [], legend }: MapViewProps) {
+export function MapView({ legend }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement | null>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
-  const [layers, setLayers] = useState<MapLayer[]>(initialLayers)
-  const [hoverInfo, setHoverInfo] = useState<{ value?: number; lat?: number; lng?: number }>({})
+  const {
+    layers,
+    removeLayer,
+    setOpacity,
+    toggleVisibility,
+    setVariable,
+    hoverValue,
+    setHoverValue,
+    setSelectedPoint,
+  } = useMapStore()
 
   // Initialize map
   useEffect(() => {
@@ -50,14 +57,18 @@ export function MapView({ initialLayers = [], legend }: MapViewProps) {
     })
 
     mapRef.current.on('mousemove', (event) => {
-      setHoverInfo({ lat: event.lngLat.lat, lng: event.lngLat.lng, value: undefined })
+      setHoverValue({ lat: event.lngLat.lat, lng: event.lngLat.lng, value: undefined })
+    })
+
+    mapRef.current.on('click', (event) => {
+      setSelectedPoint({ lat: event.lngLat.lat, lng: event.lngLat.lng })
     })
 
     return () => {
       mapRef.current?.remove()
       mapRef.current = null
     }
-  }, [])
+  }, [setHoverValue, setSelectedPoint])
 
   // Sync layers to maplibre
   useEffect(() => {
@@ -107,15 +118,15 @@ export function MapView({ initialLayers = [], legend }: MapViewProps) {
   }, [layers])
 
   const handleOpacityChange = (id: string, value: number) => {
-    setLayers((prev) => prev.map((l) => (l.id === id ? { ...l, opacity: value } : l)))
+    setOpacity(id, value)
   }
 
   const handleToggle = (id: string) => {
-    setLayers((prev) => prev.map((l) => (l.id === id ? { ...l, visible: !l.visible } : l)))
+    toggleVisibility(id)
   }
 
   const handleRemove = (id: string) => {
-    setLayers((prev) => prev.filter((l) => l.id !== id))
+    removeLayer(id)
     const map = mapRef.current
     if (map) {
       const layerId = `layer-${id}`
@@ -126,7 +137,7 @@ export function MapView({ initialLayers = [], legend }: MapViewProps) {
   }
 
   const handleVariableChange = (id: string, variable: string) => {
-    setLayers((prev) => prev.map((l) => (l.id === id ? { ...l, variable } : l)))
+    setVariable(id, variable)
   }
 
   return (
@@ -146,7 +157,7 @@ export function MapView({ initialLayers = [], legend }: MapViewProps) {
           onRemove={handleRemove}
           onVariableChange={handleVariableChange}
         />
-        <LegendAndTooltip legend={legend} hover={hoverInfo} />
+        <LegendAndTooltip legend={legend} hover={hoverValue} />
       </div>
     </div>
   )

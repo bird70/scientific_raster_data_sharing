@@ -5,13 +5,14 @@
 import { useState, useCallback, useEffect } from 'react';
 import { SearchPanel } from '../components/SearchPanel';
 import { DatasetCard } from '../components/DatasetCard';
-import { MapViewer } from '../components/MapViewer';
+import { MapView } from '../components/map/MapView';
 import { TimeSlider } from '../components/TimeSlider';
 import { TimeseriesChart } from '../components/TimeseriesChart';
 import { VariableSelector } from '../components/VariableSelector';
 import { useTimeAnimation } from '../hooks/useTimeAnimation';
 import { useTimeseries } from '../hooks/useTimeseries';
 import { useAppStore } from '../store';
+import { useMapStore } from '../state/mapStore';
 import { usePreferencesStore } from '../store/preferences';
 import { ErrorNotice } from '../components/ErrorNotice';
 import type { Dataset } from '../types';
@@ -23,11 +24,11 @@ export function Explorer() {
   const {
     selectedDataset,
     setSelectedDataset,
-    selectedPoint,
-    setSelectedPoint,
     currentTimeStep,
     setCurrentTimeStep,
   } = useAppStore();
+
+  const { addLayer, selectedPoint } = useMapStore();
 
   // Timeseries hook
   const {
@@ -64,19 +65,20 @@ export function Explorer() {
     setCurrentTimeStep(0); // Reset time step when new dataset selected
     setSelectedVariable(null); // Reset variable selection
     clearTimeseriesData(); // Clear any existing timeseries data
+
+    addLayer({
+      id: dataset.id,
+      name: dataset.title || dataset.id,
+      collection: dataset.collection,
+      asset: dataset.assets?.cog,
+      variable: selectedVariable || undefined,
+      opacity: 0.8,
+      visible: true,
+    });
   };
 
   const handleViewOnMap = () => {
     setShowDatasetCard(false);
-  };
-
-  const handleMapClick = (point: { lat: number; lng: number }) => {
-    setSelectedPoint(point);
-    
-    // Automatically fetch timeseries if we have a dataset and variable
-    if (selectedDataset && selectedVariable) {
-      fetchTimeseries(point, selectedDataset, selectedVariable);
-    }
   };
 
   // Auto-fetch timeseries when variable changes (if point is already selected)
@@ -221,13 +223,7 @@ export function Explorer() {
           )}
 
           {/* Map viewer */}
-          <MapViewer
-            dataset={selectedDataset}
-            onPointClick={handleMapClick}
-            selectedPoint={selectedPoint}
-            currentTimeStep={currentTimeStep}
-            timeSteps={timeSteps}
-          />
+          <MapView legend={{}} />
         </div>
 
         {/* Time slider */}

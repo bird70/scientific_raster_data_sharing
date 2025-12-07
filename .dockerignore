@@ -9,6 +9,10 @@ frontend/dist/
 frontend/build/
 coverage/
 
+# Docker context hygiene
+Dockerfile*
+.dockerignore
+
 # Environment and secrets
 .env
 .env.*

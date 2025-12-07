@@ -1,7 +1,8 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { MapView } from '@/components/map/MapView'
+import { useMapStore } from '@/state/mapStore'
 import type { MapLayer } from '@/types'
 
 const addSource = vi.fn()
@@ -56,30 +57,38 @@ describe('MapView', () => {
     removeSource.mockClear()
     existingLayers.clear()
     getSource.mockReturnValue(undefined)
+    act(() => {
+      useMapStore.setState({ layers: initialLayers, hoverValue: undefined, selectedPoint: null })
+    })
   })
 
   afterEach(() => {
+    act(() => {
+      useMapStore.getState().clearLayers()
+    })
     vi.clearAllMocks()
   })
 
   it('renders map view and legend', () => {
-    render(<MapView initialLayers={initialLayers} legend={{ min: 1, max: 10, units: 'K' }} />)
+    render(<MapView legend={{ min: 1, max: 10, units: 'K' }} />)
     expect(screen.getByTestId('map-view')).toBeInTheDocument()
     expect(screen.getByText(/Legend/)).toBeInTheDocument()
     expect(screen.getByText(/Min/)).toBeInTheDocument()
     expect(screen.getByText(/10/)).toBeInTheDocument()
   })
 
-  it('adds raster layers for visible layers', () => {
-    render(<MapView initialLayers={initialLayers} />)
-    expect(addSource).toHaveBeenCalled()
-    expect(addLayer).toHaveBeenCalled()
+  it('adds raster layers for visible layers', async () => {
+    render(<MapView />)
+    await vi.waitFor(() => {
+      expect(addSource).toHaveBeenCalled()
+      expect(addLayer).toHaveBeenCalled()
+    })
   })
 
   it('updates opacity via controls', async () => {
-    render(<MapView initialLayers={initialLayers} />)
+    render(<MapView />)
 
-    const sliders = screen.getAllByLabelText(/Opacity/)
+    const sliders = await screen.findAllByLabelText(/Opacity/)
     await userEvent.click(sliders[0])
     const sliderEl = sliders[0] as HTMLInputElement
     fireEvent.change(sliderEl, { target: { value: '0.4' } })
@@ -89,17 +98,19 @@ describe('MapView', () => {
 
   it('removes layer via control action', async () => {
     const user = userEvent.setup()
-    render(<MapView initialLayers={initialLayers} />)
+    render(<MapView />)
 
-    await user.click(screen.getByLabelText(/Remove Layer 1/i))
+    const removeButton = await screen.findByLabelText(/Remove Layer 1/i)
+    await user.click(removeButton)
     expect(removeLayer).toHaveBeenCalled()
   })
 
   it('toggles visibility', async () => {
     const user = userEvent.setup()
-    render(<MapView initialLayers={initialLayers} />)
+    render(<MapView />)
 
-    await user.click(screen.getByLabelText(/Toggle Layer 1/i))
+    const toggle = await screen.findByLabelText(/Toggle Layer 1/i)
+    await user.click(toggle)
     expect(setLayoutProperty).toHaveBeenCalled()
   })
 })
