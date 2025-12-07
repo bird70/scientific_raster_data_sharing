@@ -5,11 +5,11 @@
 
 ## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T001 Create `frontend/` Vite React TS app scaffold per plan
-- [ ] T002 Add package scripts and workspace instructions in `frontend/package.json` (dev, build, lint, test, e2e)
-- [ ] T003 [P] Add lint/format config in `frontend/.eslintrc.cjs` and `frontend/prettier.config.cjs`
-- [ ] T004 [P] Add `frontend/.env.example` with Cognito + API vars (base URL, pool id, client id, domain, redirect)
-- [ ] T005 [P] Configure TypeScript base paths and strict mode in `frontend/tsconfig.json`
+- [X] T001 Create `frontend/` Vite React TS app scaffold per plan
+- [X] T002 Add package scripts and workspace instructions in `frontend/package.json` (dev, build, lint, test, e2e)
+- [X] T003 [P] Add lint/format config in `frontend/.eslintrc.cjs` and `frontend/prettier.config.cjs`
+- [X] T004 [P] Add `frontend/.env.example` with Cognito + API vars (base URL, pool id, client id, domain, redirect)
+- [X] T005 [P] Configure TypeScript base paths and strict mode in `frontend/tsconfig.json`
 - [ ] T045 Add Terraform module/stack for frontend hosting (S3 + CloudFront) in `terraform/modules/` and wire variables/outputs
 - [ ] T046 Add CI/CD steps to build and deploy frontend artifact to S3/CloudFront using Terraform (no manual changes)
 
@@ -36,11 +36,11 @@
 **Goal**: Search STAC catalog by keywords, time, bbox, variables; list matching datasets.
 **Independent Test**: Enter criteria and see matching results with metadata; handles empty/no-results.
 
-- [ ] T013 [P] [US1] Build search form UI with keyword/date/bbox/variable inputs in `frontend/src/components/search/SearchForm.tsx`
-- [ ] T014 [P] [US1] Implement STAC search client calling `POST /api/v1/stac/search` in `frontend/src/services/stacSearch.ts`
-- [ ] T015 [US1] Render results list with cards (title, thumbnail, temporal/spatial extent) in `frontend/src/components/search/SearchResults.tsx`
-- [ ] T016 [US1] Highlight footprint on hover via map preview stub in `frontend/src/components/search/ResultFootprintPreview.tsx`
-- [ ] T017 [US1] Add empty/error/loading states for search results
+- [X] T013 [P] [US1] Build search form UI with keyword/date/bbox/variable inputs in `frontend/src/components/search/SearchForm.tsx`
+- [X] T014 [P] [US1] Implement STAC search client calling `POST /api/v1/stac/search` in `frontend/src/services/stacSearch.ts`
+- [X] T015 [US1] Render results list with cards (title, thumbnail, temporal/spatial extent) in `frontend/src/components/search/SearchResults.tsx`
+- [X] T016 [US1] Highlight footprint on hover via map preview stub in `frontend/src/components/search/ResultFootprintPreview.tsx`
+- [X] T017 [US1] Add empty/error/loading states for search results
 - [ ] T018 [P] [US1] Tests: form validation + request payload + result rendering in `frontend/tests/search/SearchForm.test.tsx`
 
 ---

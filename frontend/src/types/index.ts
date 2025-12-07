@@ -79,3 +79,20 @@ export interface SearchResponse {
   limit: number;
   offset: number;
 }
+
+export interface StacSearchRequest {
+  keywords?: string;
+  bbox?: [number, number, number, number];
+  datetime?: string;
+  collections?: string[];
+  variables?: string[];
+  limit?: number;
+  page?: number;
+}
+
+export interface StacSearchResponse {
+  items: Dataset[];
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
+}
