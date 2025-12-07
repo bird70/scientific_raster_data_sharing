@@ -34,33 +34,49 @@ const mockDataset: Dataset = {
 
 describe('TimeseriesController', () => {
   const mockData = {
-    times: ['2024-01-01T00:00:00Z', '2024-01-02T00:00:00Z'],
-    values: [290.1, 289.5],
-    metadata: {
-      variable: 'temperature',
-      units: 'K',
-      long_name: 'Sea Surface Temperature',
-      coordinates: { lat: -33, lng: 151 },
-      temporal_extent: {
-        start: '2024-01-01T00:00:00Z',
-        end: '2024-12-31T23:59:59Z',
+    series: [
+      {
+        datasetId: 'dataset-123',
+        variable: 'temperature',
+        units: 'K',
+        times: ['2024-01-01T00:00:00Z', '2024-01-02T00:00:00Z'],
+        values: [290.1, 289.5],
       },
+    ],
+    metadata: {
+      coordinates: { lat: -33, lng: 151 },
     },
   }
 
   const originalCreate = global.URL.createObjectURL
   const originalRevoke = global.URL.revokeObjectURL
+  const anchorClick = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
 
   beforeEach(() => {
     vi.spyOn(timeseriesService, 'fetchTimeseries').mockResolvedValue(mockData)
     global.URL.createObjectURL = vi.fn(() => 'blob:mock')
     global.URL.revokeObjectURL = vi.fn()
     act(() => {
-      useMapStore.setState({ selectedPoint: { lat: -33.0, lng: 151.0 } })
+      useMapStore.setState({
+        selectedPoint: { lat: -33.0, lng: 151.0 },
+        layers: [
+          {
+            id: mockDataset.id,
+            name: mockDataset.title,
+            collection: mockDataset.collection,
+            variable: 'temperature',
+            asset: mockDataset.assets.cog,
+            opacity: 1,
+            visible: true,
+            temporal: mockDataset.temporal,
+          },
+        ],
+      })
     })
   })
 
   afterEach(() => {
+    anchorClick.mockRestore()
     vi.restoreAllMocks()
     global.URL.createObjectURL = originalCreate
     global.URL.revokeObjectURL = originalRevoke
@@ -70,7 +86,10 @@ describe('TimeseriesController', () => {
   })
 
   it('fetches timeseries for map click and allows CSV export', async () => {
-    render(<TimeseriesController dataset={mockDataset} variable="temperature" />)
+    await act(async () => {
+      render(<TimeseriesController dataset={mockDataset} variable="temperature" />)
+      await Promise.resolve()
+    })
 
     await waitFor(() => expect(timeseriesService.fetchTimeseries).toHaveBeenCalled())
     expect(timeseriesService.fetchTimeseries).toHaveBeenCalledWith({

@@ -57,6 +57,7 @@ export function Explorer() {
       variable: selectedVariable || undefined,
       opacity: 0.8,
       visible: true,
+      temporal: dataset.temporal,
     });
   };
 

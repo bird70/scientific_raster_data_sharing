@@ -88,9 +88,9 @@
 **Goal**: Compare multiple datasets/variables on map and timeseries at one location.
 **Independent Test**: Two datasets active → click map → chart shows per-dataset series with labels; toggling layers updates chart.
 
-- [ ] T033 [US5] Support multiple active layers in store (per-dataset visibility/opacities) in `frontend/src/state/mapStore.ts`
-- [ ] T034 [US5] Update timeseries controller to query all visible layers and label series `Dataset - Variable` in `frontend/src/components/timeseries/TimeseriesController.tsx`
-- [ ] T035 [P] [US5] Tests: multi-layer query + legend labels in `frontend/tests/timeseries/Comparison.test.tsx`
+- [X] T033 [US5] Support multiple active layers in store (per-dataset visibility/opacities) in `frontend/src/state/mapStore.ts`
+- [X] T034 [US5] Update timeseries controller to query all visible layers and label series `Dataset - Variable` in `frontend/src/components/timeseries/TimeseriesController.tsx`
+- [X] T035 [P] [US5] Tests: multi-layer query + legend labels in `frontend/tests/timeseries/Comparison.test.tsx`
 
 ---
 

@@ -33,17 +33,15 @@ const client = axios.create({
 export async function fetchTimeseries(payload: TimeseriesRequest): Promise<TimeseriesData> {
   try {
     const res = await client.post<TimeseriesApiResponse>('/api/v1/timeseries', payload)
-    const first = res.data.series?.[0]
-    if (!first) return { times: [], values: [] }
+    const series = (res.data.series || []).map((s) => ({
+      datasetId: s.datasetId,
+      variable: s.variable,
+      units: s.units,
+      times: s.times,
+      values: s.values,
+    }))
 
-    return {
-      times: first.times,
-      values: first.values,
-      metadata: {
-        variable: first.variable,
-        units: first.units,
-      },
-    }
+    return { series }
   } catch (err) {
     const normalized = normalizeApiError(err)
     throw new ApiError(normalized)

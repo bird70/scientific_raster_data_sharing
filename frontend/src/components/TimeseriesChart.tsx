@@ -35,14 +35,15 @@ export function TimeseriesChart({ data, isLoading = false, onExport, colorScheme
   }, [colorScheme]);
 
   const plotData = useMemo(() => {
-    if (!data || data.times.length === 0) return [];
+    const series = data?.series || [];
+    if (series.length === 0) return [];
 
-    return [{
-      x: data.times,
-      y: data.values,
+    return series.map((s, idx) => ({
+      x: s.times,
+      y: s.values,
       type: 'scatter' as const,
       mode: 'lines+markers' as const,
-      name: data.metadata?.variable || 'Value',
+      name: s.label || s.variable || `Series ${idx + 1}`,
       line: {
         color: palette.line,
         width: 2,
@@ -51,16 +52,17 @@ export function TimeseriesChart({ data, isLoading = false, onExport, colorScheme
         color: palette.marker,
         size: 4,
       },
-      hovertemplate: '<b>%{fullData.name}</b><br>' +
-                    'Time: %{x}<br>' +
-                    'Value: %{y:.4f}' + (data.metadata?.units ? ` ${data.metadata.units}` : '') +
-                    '<extra></extra>',
-    }];
+      hovertemplate:
+        '<b>%{fullData.name}</b><br>' +
+        'Time: %{x}<br>' +
+        'Value: %{y:.4f}' + (s.units ? ` ${s.units}` : '') +
+        '<extra></extra>',
+    }));
   }, [data, palette]);
 
   const layout = useMemo(() => ({
     title: {
-      text: data?.metadata?.long_name || data?.metadata?.variable || 'Timeseries Data',
+      text: 'Timeseries Data',
       font: { size: 16 },
     },
     xaxis: {
@@ -71,9 +73,14 @@ export function TimeseriesChart({ data, isLoading = false, onExport, colorScheme
     },
     yaxis: {
       title: {
-        text: data?.metadata?.units 
-          ? `${data?.metadata.variable || 'Value'} (${data.metadata.units})`
-          : data?.metadata?.variable || 'Value',
+        text: (() => {
+          const first = data?.series?.[0]
+          if (!first) return 'Value'
+          if (first.units && (first.variable || first.label)) {
+            return `${first.variable || first.label} (${first.units})`
+          }
+          return first.variable || first.label || 'Value'
+        })(),
       },
       showgrid: true,
       gridcolor: palette.grid,
@@ -119,7 +126,9 @@ export function TimeseriesChart({ data, isLoading = false, onExport, colorScheme
     );
   }
 
-  if (!data || data.times.length === 0) {
+  const hasSeries = data?.series && data.series.length > 0 && data.series.some((s) => s.times.length > 0)
+
+  if (!hasSeries) {
     return (
       <div className="h-full flex items-center justify-center bg-white">
         <div className="text-center text-gray-500">
@@ -137,7 +146,7 @@ export function TimeseriesChart({ data, isLoading = false, onExport, colorScheme
               d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"
             />
           </svg>
-          <p className="text-lg font-medium mb-2">No Timeseries Data</p>
+            <p className="text-lg font-medium mb-2">No Timeseries Data</p>
           <p className="text-sm">
             Click on the map to extract timeseries data for a location
           </p>
@@ -180,22 +189,17 @@ export function TimeseriesChart({ data, isLoading = false, onExport, colorScheme
       )}
       
       {/* Metadata info */}
-      {data.metadata && (
+      {(data.metadata || data.series[0]?.metadata || data.series[0]) && (
         <div className="absolute bottom-4 left-4 bg-white bg-opacity-90 backdrop-blur-sm rounded-lg shadow-sm px-3 py-2 border border-gray-200 max-w-xs z-10">
           <div className="text-xs space-y-1">
-            {data.metadata.coordinates && (
+            {data.metadata?.coordinates && (
               <p className="text-gray-600">
                 <span className="font-medium">Location:</span>{' '}
                 {data.metadata.coordinates.lat.toFixed(4)}, {data.metadata.coordinates.lng.toFixed(4)}
               </p>
             )}
-            {data.metadata.collection && (
-              <p className="text-gray-600">
-                <span className="font-medium">Collection:</span> {data.metadata.collection}
-              </p>
-            )}
             <p className="text-gray-600">
-              <span className="font-medium">Points:</span> {data.times.length}
+              <span className="font-medium">Points:</span> {data.series.reduce((acc, s) => acc + s.times.length, 0)}
             </p>
           </div>
         </div>

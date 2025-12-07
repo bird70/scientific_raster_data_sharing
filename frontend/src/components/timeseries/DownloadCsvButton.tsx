@@ -6,7 +6,7 @@ interface DownloadCsvButtonProps {
 }
 
 export function DownloadCsvButton({ data, onDownload }: DownloadCsvButtonProps) {
-  const disabled = !data || data.times.length === 0
+  const disabled = !data || data.series.length === 0 || data.series.every((series) => series.times.length === 0)
   return (
     <button
       type="button"

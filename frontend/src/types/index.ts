@@ -48,20 +48,23 @@ export interface TimeseriesPoint {
   value: number;
 }
 
-export interface TimeseriesData {
+export interface TimeseriesSeries {
+  datasetId?: string;
+  variable?: string;
+  units?: string;
   times: string[];
   values: number[];
+  label?: string;
   metadata?: {
-    variable: string;
-    units: string;
-    long_name: string;
-    coordinates: LatLng;
-    temporal_extent: {
-      start: string;
-      end: string;
-    };
     collection?: string;
     description?: string;
+  };
+}
+
+export interface TimeseriesData {
+  series: TimeseriesSeries[];
+  metadata?: {
+    coordinates?: LatLng;
   };
 }
 
@@ -105,6 +108,7 @@ export interface MapLayer {
   variable?: string;
   opacity: number;
   visible: boolean;
+  temporal?: Dataset['temporal'];
 }
 
 export interface CollectionNode {
