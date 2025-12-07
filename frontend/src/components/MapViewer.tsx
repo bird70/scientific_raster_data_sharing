@@ -2,7 +2,7 @@
  * Map viewer component using MapLibre GL JS
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import maplibregl, { type StyleSpecification } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { MapLibreAdapter } from '../utils/map/MapLibreAdapter';
@@ -11,6 +11,8 @@ import type { MapAdapter } from '../utils/map/MapAdapter';
 import type { Dataset, LatLng } from '../types';
 import { usePreferencesStore } from '../store/preferences';
 import type { BaseMapStyle, ColorScheme } from '../store/preferences';
+import { ErrorNotice } from './ErrorNotice';
+import type { NormalizedError } from '../utils/errors';
 
 interface MapViewerProps {
   dataset: Dataset | null;
@@ -82,8 +84,19 @@ export function MapViewer({
   const map = useRef<maplibregl.Map | null>(null);
   const adapter = useRef<MapAdapter | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [mapError, setMapError] = useState<NormalizedError | null>(null);
   const { baseMap, setBaseMap, colorScheme, setColorScheme } = usePreferencesStore();
   const initialStyle = useRef<StyleSpecification>(getBaseStyle(baseMap));
+
+  const reloadBaseStyle = useCallback(() => {
+    if (!map.current) return;
+    // defer to avoid synchronous setState warning
+    setTimeout(() => setIsLoaded(false), 0);
+    map.current.setStyle(getBaseStyle(baseMap));
+    map.current.once('styledata', () => {
+      setIsLoaded(true);
+    });
+  }, [baseMap]);
 
   // Initialize map
   useEffect(() => {
@@ -111,11 +124,23 @@ export function MapViewer({
       setIsLoaded(true);
     });
 
+    // Capture map errors for display
+    const handleError = (event: maplibregl.ErrorEvent) => {
+      setMapError({
+        message: event.error?.message || 'Map rendering error',
+        retryable: true,
+      });
+    };
+    map.current.on('error', handleError);
+
     // Cleanup
     return () => {
       if (adapter.current) {
         adapter.current.remove();
         adapter.current = null;
+      }
+      if (map.current) {
+        map.current.off('error', () => undefined);
       }
       map.current = null;
     };
@@ -124,11 +149,8 @@ export function MapViewer({
   // Handle base map preference changes
   useEffect(() => {
     if (!map.current) return;
-    map.current.setStyle(getBaseStyle(baseMap));
-    map.current.once('styledata', () => {
-      setIsLoaded(true);
-    });
-  }, [baseMap]);
+    reloadBaseStyle();
+  }, [baseMap, reloadBaseStyle]);
 
   // Handle map clicks
   useEffect(() => {
@@ -176,11 +198,17 @@ export function MapViewer({
       const baseUrl = ((import.meta as ImportMeta & { env: { VITE_API_BASE_URL?: string } }).env.VITE_API_BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
       const tileUrl = `${baseUrl}/tiles/${dataset.collection}/{z}/{x}/{y}.png`;
       
-      adapter.current.addRasterLayer('dataset-tiles', tileUrl, {
-        opacity: 0.7,
-        minzoom: 0,
-        maxzoom: 18,
-      });
+      try {
+        adapter.current.addRasterLayer('dataset-tiles', tileUrl, {
+          opacity: 0.7,
+          minzoom: 0,
+          maxzoom: 18,
+        });
+        setTimeout(() => setMapError(null), 0);
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Failed to load tiles';
+        setTimeout(() => setMapError({ message, retryable: true }), 0);
+      }
     }
 
     // Cleanup when dataset changes
@@ -278,6 +306,21 @@ export function MapViewer({
       {isLoaded && (
         <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg border-2 border-gray-300 text-sm font-bold text-gray-900">
           📍 Click on map to select point
+        </div>
+      )}
+
+      {/* Map error notice */}
+      {mapError && (
+        <div className="absolute bottom-4 left-4 max-w-sm">
+          <ErrorNotice
+            title="Map error"
+            message={mapError.message}
+            correlationId={mapError.correlationId}
+            onRetry={mapError.retryable ? () => {
+              setMapError(null);
+              reloadBaseStyle();
+            } : undefined}
+          />
         </div>
       )}
     </div>

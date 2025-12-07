@@ -7,6 +7,7 @@ import { apiClient } from '../api/client';
 import type { Dataset, SearchFilters } from '../types';
 import { ApiError, formatErrorMessage, normalizeApiError } from '../utils/errors';
 import { ErrorNotice } from './ErrorNotice';
+import { usePreferencesStore } from '../store/preferences';
 
 type SearchParams = {
   start_date?: string;
@@ -23,12 +24,19 @@ interface SearchPanelProps {
 }
 
 export function SearchPanel({ onDatasetSelect }: SearchPanelProps) {
+  const { lastSearch, setLastSearch } = usePreferencesStore();
+  const initialFilters: SearchFilters = {
+    dateRange: lastSearch.dateRange
+      ? [new Date(lastSearch.dateRange[0]), new Date(lastSearch.dateRange[1])]
+      : null,
+    bbox: lastSearch.bbox,
+    variables: lastSearch.variables,
+    collections: lastSearch.collections,
+    searchText: lastSearch.searchText,
+  };
+
   const [filters, setFilters] = useState<SearchFilters>({
-    dateRange: null,
-    bbox: null,
-    variables: [],
-    collections: [],
-    searchText: '',
+    ...initialFilters,
   });
 
   const [results, setResults] = useState<Dataset[]>([]);
@@ -42,6 +50,19 @@ export function SearchPanel({ onDatasetSelect }: SearchPanelProps) {
   useEffect(() => {
     loadCollections();
   }, []);
+
+  // Persist non-sensitive search filters to preferences (no tokens)
+  useEffect(() => {
+    setLastSearch({
+      dateRange: filters.dateRange
+        ? [filters.dateRange[0].toISOString(), filters.dateRange[1].toISOString()]
+        : null,
+      bbox: filters.bbox,
+      variables: filters.variables,
+      collections: filters.collections,
+      searchText: filters.searchText.trim().slice(0, 200),
+    });
+  }, [filters, setLastSearch]);
 
   const loadCollections = async () => {
     try {

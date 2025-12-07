@@ -25,7 +25,7 @@
 - [ ] T011 Add base theming + design tokens in `frontend/src/styles/theme.css` and layout CSS
 - [ ] T012 Add error boundary and global toast/notices in `frontend/src/components/common/ErrorBoundary.tsx`
 - [X] T047 Implement user preferences store (default base map, layer order, color schemes) with localStorage persistence in `frontend/src/state/preferencesStore.ts`
-- [ ] T048 Add preferences load/save UI hooks in map/search components with validation to avoid sensitive data storage
+- [X] T048 Add preferences load/save UI hooks in map/search components with validation to avoid sensitive data storage
 
 **Checkpoint**: Foundation ready; user stories can proceed.
 
@@ -113,7 +113,7 @@
 - [ ] T042 [P] Accessibility: focus states, ARIA labels on forms/map controls in `frontend/src/components/`
 - [ ] T043 Security review: ensure tokens never stored beyond memory/localStorage non-sensitive prefs; audit error messages
 - [ ] T044 [P] Final E2E happy-path: search → map → timeseries flow in `frontend/tests/e2e/HappyPath.spec.ts`
-- [ ] T049 Cross-cutting error UX: shared error/notification pattern with retry for search/browse/map/timeseries; display within 500ms and log correlation IDs
+- [X] T049 Cross-cutting error UX: shared error/notification pattern with retry for search/browse/map/timeseries; display within 500ms and log correlation IDs
 
 ---
 
