@@ -52,6 +52,12 @@ export function Layout({ children }: LayoutProps) {
                 Explorer
               </Link>
               <Link
+                to="/browse"
+                className="text-white hover:bg-white/20 px-4 py-2 rounded-lg text-sm font-bold transition-all"
+              >
+                Browse
+              </Link>
+              <Link
                 to="/about"
                 className="text-white hover:bg-white/20 px-4 py-2 rounded-lg text-sm font-bold transition-all"
               >

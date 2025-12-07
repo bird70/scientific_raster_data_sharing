@@ -106,3 +106,11 @@ export interface MapLayer {
   opacity: number;
   visible: boolean;
 }
+
+export interface CollectionNode {
+  id: string;
+  title: string;
+  description?: string;
+  childCollections: string[];
+  items: Dataset[];
+}

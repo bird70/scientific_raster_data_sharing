@@ -1,6 +1,9 @@
 /* Google Fonts - Inter (modern, professional sans-serif) */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
+/* Design tokens */
+@import './styles/theme.css';
+
 /* MapLibre GL CSS */
 @import 'maplibre-gl/dist/maplibre-gl.css';
 

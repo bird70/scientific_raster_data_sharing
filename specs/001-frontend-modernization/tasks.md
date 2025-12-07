@@ -21,8 +21,8 @@
 - [ ] T007 [P] Implement API client wrapper with Cognito JWT injection and error normalization in `frontend/src/services/apiClient.ts`
 - [ ] T008 [P] Add auth provider using Amplify Auth in `frontend/src/state/auth.tsx`
 - [X] T009 [P] Add state stores for map/layers/timeseries (Zustand) in `frontend/src/state/mapStore.ts` and `frontend/src/state/timeseriesStore.ts`
-- [ ] T010 [P] Configure MSW handlers for search/tiles/timeseries in `frontend/src/mocks/handlers.ts` and test setup
-- [ ] T011 Add base theming + design tokens in `frontend/src/styles/theme.css` and layout CSS
+- [X] T010 [P] Configure MSW handlers for search/tiles/timeseries in `frontend/src/mocks/handlers.ts` and test setup
+- [X] T011 Add base theming + design tokens in `frontend/src/styles/theme.css` and layout CSS
 - [X] T012 Add error boundary and global toast/notices in `frontend/src/components/common/ErrorBoundary.tsx`
 - [X] T047 Implement user preferences store (default base map, layer order, color schemes) with localStorage persistence in `frontend/src/state/preferencesStore.ts`
 - [X] T048 Add preferences load/save UI hooks in map/search components with validation to avoid sensitive data storage
@@ -50,10 +50,10 @@
 **Goal**: Browse STAC catalog hierarchy (collections/items) and view metadata.
 **Independent Test**: Navigate tree, expand collections, see child items and metadata.
 
-- [ ] T019 [P] [US2] Implement catalog fetch client for root/collection endpoints in `frontend/src/services/catalogBrowse.ts`
-- [ ] T020 [US2] Build browse UI (tree/cards + breadcrumbs) in `frontend/src/components/browse/CatalogBrowser.tsx`
-- [ ] T021 [US2] Render collection/item metadata panel with actions (View on Map, View Timeseries) in `frontend/src/components/browse/ItemDetails.tsx`
-- [ ] T022 [P] [US2] Tests: navigation breadcrumbs and child loading in `frontend/tests/browse/CatalogBrowser.test.tsx`
+- [X] T019 [P] [US2] Implement catalog fetch client for root/collection endpoints in `frontend/src/services/catalogBrowse.ts`
+- [X] T020 [US2] Build browse UI (tree/cards + breadcrumbs) in `frontend/src/components/browse/CatalogBrowser.tsx`
+- [X] T021 [US2] Render collection/item metadata panel with actions (View on Map, View Timeseries) in `frontend/src/components/browse/ItemDetails.tsx`
+- [X] T022 [P] [US2] Tests: navigation breadcrumbs and child loading in `frontend/tests/browse/CatalogBrowser.test.tsx`
 
 ---
 
