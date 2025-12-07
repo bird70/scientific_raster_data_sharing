@@ -1,0 +1,46 @@
+name: Deploy Frontend
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: GitHubActions-${{ github.run_id }}
+          aws-region: ap-southeast-2
+
+      - name: Get Terraform outputs
+        id: tfoutput
+        run: |
+          cd terraform
+          ALB_DNS=$(terraform output -raw alb_dns_name)
+          BUCKET=$(terraform output -raw frontend_bucket_name)
+          echo "alb_dns=$ALB_DNS" >> $GITHUB_OUTPUT
+          echo "bucket=$BUCKET" >> $GITHUB_OUTPUT
+
+      - name: Build frontend with dynamic API URL
+        run: |
+          cd frontend
+          VITE_API_BASE_URL="http://${{ steps.tfoutput.outputs.alb_dns }}" npm run build
+
+      - name: Sync frontend build to S3
+        run: |
+          aws s3 sync frontend/dist/ s3://${{ steps.tfoutput.outputs.bucket }}/ --delete

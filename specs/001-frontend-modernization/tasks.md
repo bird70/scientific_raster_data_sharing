@@ -75,11 +75,11 @@
 **Goal**: Click map to query timeseries and visualize in Plotly; CSV export.
 **Independent Test**: Click location → API returns data → Plotly renders series; CSV downloads.
 
-- [ ] T028 [P] [US4] Implement timeseries client for `POST /api/v1/timeseries` in `frontend/src/services/timeseries.ts`
-- [ ] T029 [US4] Wire map click to timeseries query with loading/error states in `frontend/src/components/timeseries/TimeseriesController.tsx`
-- [ ] T030 [US4] Plotly chart component with multi-series, hover tooltips, zoom/pan in `frontend/src/components/timeseries/TimeseriesChart.tsx`
-- [ ] T031 [US4] CSV export utility for current series in `frontend/src/components/timeseries/DownloadCsvButton.tsx`
-- [ ] T032 [P] [US4] Tests: query payload, chart render, CSV export in `frontend/tests/timeseries/TimeseriesChart.test.tsx`
+- [X] T028 [P] [US4] Implement timeseries client for `POST /api/v1/timeseries` in `frontend/src/services/timeseries.ts`
+- [X] T029 [US4] Wire map click to timeseries query with loading/error states in `frontend/src/components/timeseries/TimeseriesController.tsx`
+- [X] T030 [US4] Plotly chart component with multi-series, hover tooltips, zoom/pan in `frontend/src/components/timeseries/TimeseriesChart.tsx`
+- [X] T031 [US4] CSV export utility for current series in `frontend/src/components/timeseries/DownloadCsvButton.tsx`
+- [X] T032 [P] [US4] Tests: query payload, chart render, CSV export in `frontend/tests/timeseries/TimeseriesChart.test.tsx`
 
 ---
 

@@ -2,19 +2,16 @@
  * Main explorer page with map and data visualization
  */
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { SearchPanel } from '../components/SearchPanel';
 import { DatasetCard } from '../components/DatasetCard';
 import { MapView } from '../components/map/MapView';
 import { TimeSlider } from '../components/TimeSlider';
-import { TimeseriesChart } from '../components/TimeseriesChart';
+import { TimeseriesController } from '@/components/timeseries/TimeseriesController';
 import { VariableSelector } from '../components/VariableSelector';
 import { useTimeAnimation } from '../hooks/useTimeAnimation';
-import { useTimeseries } from '../hooks/useTimeseries';
 import { useAppStore } from '../store';
 import { useMapStore } from '../state/mapStore';
-import { usePreferencesStore } from '../store/preferences';
-import { ErrorNotice } from '../components/ErrorNotice';
 import type { Dataset } from '../types';
 
 export function Explorer() {
@@ -28,19 +25,7 @@ export function Explorer() {
     setCurrentTimeStep,
   } = useAppStore();
 
-  const { addLayer, selectedPoint } = useMapStore();
-
-  // Timeseries hook
-  const {
-    data: timeseriesData,
-    isLoading: isLoadingTimeseries,
-    error: timeseriesError,
-    lastError: timeseriesLastError,
-    fetchTimeseries,
-    exportData,
-    clearData: clearTimeseriesData,
-  } = useTimeseries();
-  const colorScheme = usePreferencesStore((state) => state.colorScheme);
+  const { addLayer } = useMapStore();
 
   // Generate mock time steps for demonstration
   // In production, these would come from the dataset metadata
@@ -64,8 +49,6 @@ export function Explorer() {
     setShowDatasetCard(true);
     setCurrentTimeStep(0); // Reset time step when new dataset selected
     setSelectedVariable(null); // Reset variable selection
-    clearTimeseriesData(); // Clear any existing timeseries data
-
     addLayer({
       id: dataset.id,
       name: dataset.title || dataset.id,
@@ -80,13 +63,6 @@ export function Explorer() {
   const handleViewOnMap = () => {
     setShowDatasetCard(false);
   };
-
-  // Auto-fetch timeseries when variable changes (if point is already selected)
-  useEffect(() => {
-    if (selectedPoint && selectedDataset && selectedVariable) {
-      fetchTimeseries(selectedPoint, selectedDataset, selectedVariable);
-    }
-  }, [selectedVariable, selectedPoint, selectedDataset, fetchTimeseries]);
 
   const handleTimeStepChange = useCallback(
     (step: number | ((prev: number) => number)) => {
@@ -259,36 +235,12 @@ export function Explorer() {
                   <li>3. View the timeseries chart</li>
                 </ol>
               </div>
-              
-              {/* Error display */}
-              {timeseriesError && (
-                <div className="mt-4">
-                  <ErrorNotice
-                    title="Timeseries request failed"
-                    message={timeseriesError}
-                    correlationId={timeseriesLastError?.correlationId}
-                    onRetry={
-                      timeseriesLastError?.retryable &&
-                      selectedPoint &&
-                      selectedDataset &&
-                      selectedVariable
-                        ? () => fetchTimeseries(selectedPoint, selectedDataset, selectedVariable)
-                        : undefined
-                    }
-                  />
-                </div>
-              )}
             </div>
           )}
           
           {/* Chart area */}
           <div className="flex-1 min-h-[200px]">
-            <TimeseriesChart
-              data={timeseriesData}
-              isLoading={isLoadingTimeseries}
-              onExport={exportData}
-              colorScheme={colorScheme}
-            />
+            <TimeseriesController dataset={selectedDataset} variable={selectedVariable} />
           </div>
         </div>
       </div>
