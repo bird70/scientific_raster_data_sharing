@@ -10,7 +10,7 @@ Modernize the frontend with React to deliver STAC catalog discovery, interactive
 ## Technical Context
 
 **Language/Version**: TypeScript (React 18)  
-**Primary Dependencies**: React, Plotly, MapLibre or Leaflet (decision in research), Axios/Fetch wrapper, AWS Amplify or custom Cognito client  
+**Primary Dependencies**: React, Plotly, MapLibre GL JS (selected per research for WebGL performance), Axios/Fetch wrapper, AWS Amplify or custom Cognito client  
 **Storage**: None client-side beyond localStorage for preferences (non-sensitive)  
 **Testing**: React Testing Library, MSW for API mocking, Cypress/Playwright for E2E  
 **Target Platform**: Modern browsers (Chrome, Firefox, Safari, Edge)  
@@ -21,13 +21,13 @@ Modernize the frontend with React to deliver STAC catalog discovery, interactive
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design. Frontend hosting is NON-NEGOTIABLE.*
 
-- **IaC (NON-NEGOTIABLE)**: Frontend hosting/deployment must be Terraform-managed (S3+CloudFront). No manual infra changes.  
+- **IaC (NON-NEGOTIABLE)**: Frontend hosting/deployment must be Terraform-managed (S3+CloudFront in terraform/modules/). No manual infra changes. Phase 1 tasks MUST include frontend infrastructure setup.  
 - **API-First**: Consume documented REST endpoints with OpenAPI alignment for STAC search, tiles, timeseries.  
 - **TDD (NON-NEGOTIABLE)**: Tests before merge; unit+integration+E2E with >80% coverage gate.  
 - **Observability**: Surface client errors with clear messaging; propagate correlation IDs from backend when provided.  
-- **Security**: Cognito JWT required on all API calls; no sensitive data in localStorage; least-privilege tokens.
+- **Security**: Cognito JWT required on all API calls; no sensitive data in localStorage (only non-sensitive preferences); least-privilege tokens.
 
 ## Project Structure
 

@@ -257,7 +257,7 @@ Users accessing the platform from mobile devices or tablets need a responsive in
 - **R-003**: Timeseries queries may timeout for long date ranges → Mitigation: Backend implements pagination/downsampling; frontend limits date range or warns users; allow query cancellation
 - **R-004**: Cognito authentication integration may be complex → Mitigation: Use Amplify SDK to abstract OAuth flow; test with mock auth in development; document token refresh handling
 - **R-005**: Cross-browser compatibility issues (especially Safari) → Mitigation: Test in all target browsers during development; use polyfills for newer JS features; follow web standards
-- **R-006**: STAC catalog may have inconsistent metadata across datasets → Mitigation: Implement robust null-checking; provide fal- **R-002**: Map tile rendering may beith TypeScript types
+- **R-006**: STAC catalog may have inconsistent metadata across datasets → Mitigation: Implement robust null-checking and validation; provide fallback UI for missing fields; use TypeScript strict types to catch metadata issues early
 
 ---
 

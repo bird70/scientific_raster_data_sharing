@@ -10,6 +10,8 @@
 - [ ] T003 [P] Add lint/format config in `frontend/.eslintrc.cjs` and `frontend/prettier.config.cjs`
 - [ ] T004 [P] Add `frontend/.env.example` with Cognito + API vars (base URL, pool id, client id, domain, redirect)
 - [ ] T005 [P] Configure TypeScript base paths and strict mode in `frontend/tsconfig.json`
+- [ ] T045 Add Terraform module/stack for frontend hosting (S3 + CloudFront) in `terraform/modules/` and wire variables/outputs
+- [ ] T046 Add CI/CD steps to build and deploy frontend artifact to S3/CloudFront using Terraform (no manual changes)
 
 ---
 
@@ -22,6 +24,8 @@
 - [ ] T010 [P] Configure MSW handlers for search/tiles/timeseries in `frontend/src/mocks/handlers.ts` and test setup
 - [ ] T011 Add base theming + design tokens in `frontend/src/styles/theme.css` and layout CSS
 - [ ] T012 Add error boundary and global toast/notices in `frontend/src/components/common/ErrorBoundary.tsx`
+- [ ] T047 Implement user preferences store (default base map, layer order, color schemes) with localStorage persistence in `frontend/src/state/preferencesStore.ts`
+- [ ] T048 Add preferences load/save UI hooks in map/search components with validation to avoid sensitive data storage
 
 **Checkpoint**: Foundation ready; user stories can proceed.
 
@@ -62,7 +66,7 @@
 - [ ] T024 [P] [US3] Layer loader for tiles endpoint `/tiles/{collection}/{z}/{x}/{y}.png?asset=` in `frontend/src/services/tiles.ts`
 - [ ] T025 [US3] Layer control panel (opacity slider, variable dropdown, visibility toggle, remove) in `frontend/src/components/map/LayerControls.tsx`
 - [ ] T026 [US3] Legend rendering and tooltip value probe on hover in `frontend/src/components/map/LegendAndTooltip.tsx`
-- [ ] T027 [P] [US3] Tests: layer add/remove/opacity interactions in `frontend/tests/map/MapView.test.tsx`
+- [ ] T027 [P] [US3] Tests: layer add/remove/opacity interactions plus legend rendering/value range and tooltip probe accuracy in `frontend/tests/map/MapView.test.tsx`
 
 ---
 
@@ -109,6 +113,7 @@
 - [ ] T042 [P] Accessibility: focus states, ARIA labels on forms/map controls in `frontend/src/components/`
 - [ ] T043 Security review: ensure tokens never stored beyond memory/localStorage non-sensitive prefs; audit error messages
 - [ ] T044 [P] Final E2E happy-path: search → map → timeseries flow in `frontend/tests/e2e/HappyPath.spec.ts`
+- [ ] T049 Cross-cutting error UX: shared error/notification pattern with retry for search/browse/map/timeseries; display within 500ms and log correlation IDs
 
 ---
 
