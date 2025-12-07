@@ -96,3 +96,13 @@ export interface StacSearchResponse {
   pageSize: number;
   hasMore: boolean;
 }
+
+export interface MapLayer {
+  id: string;
+  name: string;
+  collection: string;
+  asset?: string;
+  variable?: string;
+  opacity: number;
+  visible: boolean;
+}

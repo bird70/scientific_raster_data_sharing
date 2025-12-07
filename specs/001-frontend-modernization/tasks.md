@@ -62,11 +62,11 @@
 **Goal**: Display raster layers on map with opacity, variable selection, legend, tooltips, multiple layers.
 **Independent Test**: Select dataset → map shows tiles centered on bbox with controls and legend.
 
-- [ ] T023 [P] [US3] Integrate MapLibre map container in `frontend/src/components/map/MapView.tsx`
-- [ ] T024 [P] [US3] Layer loader for tiles endpoint `/tiles/{collection}/{z}/{x}/{y}.png?asset=` in `frontend/src/services/tiles.ts`
-- [ ] T025 [US3] Layer control panel (opacity slider, variable dropdown, visibility toggle, remove) in `frontend/src/components/map/LayerControls.tsx`
-- [ ] T026 [US3] Legend rendering and tooltip value probe on hover in `frontend/src/components/map/LegendAndTooltip.tsx`
-- [ ] T027 [P] [US3] Tests: layer add/remove/opacity interactions plus legend rendering/value range and tooltip probe accuracy in `frontend/tests/map/MapView.test.tsx`
+- [X] T023 [P] [US3] Integrate MapLibre map container in `frontend/src/components/map/MapView.tsx`
+- [X] T024 [P] [US3] Layer loader for tiles endpoint `/tiles/{collection}/{z}/{x}/{y}.png?asset=` in `frontend/src/services/tiles.ts`
+- [X] T025 [US3] Layer control panel (opacity slider, variable dropdown, visibility toggle, remove) in `frontend/src/components/map/LayerControls.tsx`
+- [X] T026 [US3] Legend rendering and tooltip value probe on hover in `frontend/src/components/map/LegendAndTooltip.tsx`
+- [X] T027 [P] [US3] Tests: layer add/remove/opacity interactions plus legend rendering/value range and tooltip probe accuracy in `frontend/tests/map/MapView.test.tsx`
 
 ---
 
