@@ -226,38 +226,195 @@ Internet
 
 --------------------
 
-## Architecture diagram — (Mermaid)
+# AWS Architecture Diagram - Scientific Raster Sharing Platform
+
+## Mermaid Diagram
 
 ```mermaid
-flowchart TD
-  Internet["Internet"]
-  DNS["Route53 / Custom Domain"]
-  ALB["ALB (ACM TLS)"]
-  ECS["ECS Service (Fargate)<br>FastAPI app"]
-  ECR["ECR (Docker images)"]
-  GH["GitHub Actions CI/CD"]
-  Cognito["Cognito (User Pool)"]
-  Redis["ElastiCache Redis"]
-  S3["S3 (tile & asset storage)"]
-  OS["OpenSearch (STAC index)"]
-  DASK["Dask (Scheduler & Workers)<br>ECS or EKS"]
-  Prom["Prometheus / OTel / CloudWatch"]
-  CW["CloudWatch Logs"]
-  VPC["VPC<br>(public & private subnets)"]
-  NAT["NAT Gateway / VPC Endpoints"]
+graph TB
+    subgraph Internet
+        Users[Users/Clients]
+        GitHub[GitHub Actions]
+    end
 
-  Internet --> DNS --> ALB
-  ALB --> ECS
-  GH --> ECR -->|image pull| ECS
-  ECS --> Cognito
-  ECS --> Redis
-  ECS --> S3
-  ECS --> OS
-  ECS --> DASK
-  ECS --> Prom
-  ECS --> CW
+    subgraph CloudFront_CDN["CloudFront CDN"]
+        CF[CloudFront Distribution]
+        OAI[Origin Access Identity]
+    end
 
-  ALB --- VPC
+    subgraph VPC["VPC - Data Platform"]
+        subgraph PublicSubnets["Public Subnets (AZ1, AZ2)"]
+            IGW[Internet Gateway]
+            NAT[NAT Gateway]
+            ALB[Application Load Balancer]
+        end
+
+        subgraph PrivateSubnets["Private Subnets (AZ1, AZ2)"]
+            subgraph ECS_Cluster["ECS Cluster"]
+                TS[Timeseries Service]
+                TILES[Tiles Service]
+                DASK_SCHED[Dask Scheduler]
+                DASK_WORK[Dask Workers]
+                COG_TASK[COG Generation Task]
+                ZARR_TASK[Zarr Conversion Task]
+            end
+
+            subgraph Lambda["Lambda Functions"]
+                TRIGGER[Trigger Lambda]
+                STAC_CREATE[STAC Creator Lambda]
+                STAC_INDEX[STAC Indexer Lambda]
+                COG_GEN[COG Generator Lambda]
+                ZARR_CONV[Zarr Converter Lambda]
+            end
+
+            subgraph Data_Layer["Data Layer"]
+                REDIS[ElastiCache Redis]
+                DYNAMO[DynamoDB STAC Items]
+            end
+        end
+
+        subgraph VPC_Endpoints["VPC Endpoints"]
+            EP_S3[S3 Endpoint]
+            EP_ECR[ECR Endpoints]
+            EP_LOGS[CloudWatch Logs]
+            EP_OS[OpenSearch]
+        end
+    end
+
+    subgraph Storage["S3 Storage"]
+        S3_RAW[S3: Raw Data]
+        S3_COG[S3: COG Data]
+        S3_ZARR[S3: Zarr Data]
+        S3_STAC[S3: STAC Metadata]
+        S3_FRONT[S3: Frontend Assets]
+    end
+
+    subgraph Orchestration["Orchestration"]
+        SFN[Step Functions<br/>Ingestion Workflow]
+    end
+
+    subgraph Container_Registry["Container Registry"]
+        ECR[ECR Repository]
+    end
+
+    subgraph Monitoring["Monitoring & Alerting"]
+        CW[CloudWatch Logs & Metrics]
+        SNS_ALARM[SNS: Alarms Topic]
+        SNS_FAIL[SNS: Ingestion Failures]
+        ALARMS[CloudWatch Alarms]
+    end
+
+    subgraph IAM_Layer["IAM & Security"]
+        IAM_LAMBDA[Lambda Execution Role]
+        IAM_ECS[ECS Task/Execution Roles]
+        IAM_SFN[Step Functions Role]
+        IAM_GH[GitHub Actions Role]
+    end
+
+    subgraph Service_Discovery["Service Discovery"]
+        SD[Cloud Map<br/>dask.local]
+    end
+
+    %% User flows
+    Users -->|HTTPS| CF
+    CF -->|CloudFront OAI| S3_FRONT
+    Users -->|API Requests| ALB
+    GitHub -->|Deploy| ECR
+    GitHub -->|Upload Assets| S3_FRONT
+
+    %% ALB routing
+    ALB -->|/tiles/*| TILES
+    ALB -->|/api/*| TS
+    ALB -->|/health, /metrics, /docs| TS
+
+    %% ECS Services
+    TS -.->|Read| DYNAMO
+    TS -.->|Cache| REDIS
+    TS -.->|Read| S3_STAC
+    TILES -.->|Read| S3_COG
+    TILES -.->|Read| S3_ZARR
+    TILES -.->|Cache| REDIS
+
+    %% Dask cluster
+    DASK_WORK -->|Discover| SD
+    DASK_SCHED -->|Register| SD
+    COG_TASK -->|Submit Jobs| DASK_SCHED
+    ZARR_TASK -->|Submit Jobs| DASK_SCHED
+    DASK_WORK -.->|Process| S3_COG
+    DASK_WORK -.->|Process| S3_ZARR
+
+    %% Ingestion flow
+    S3_RAW -->|S3 Event| TRIGGER
+    TRIGGER -->|Start| SFN
+    SFN -->|Invoke| STAC_CREATE
+    SFN -->|Invoke| COG_GEN
+    SFN -->|Invoke| ZARR_CONV
+    STAC_CREATE -.->|Write| S3_STAC
+    STAC_CREATE -->|Invoke| STAC_INDEX
+    STAC_INDEX -.->|Write| DYNAMO
+    COG_GEN -.->|Write| S3_COG
+    ZARR_CONV -.->|Write| S3_ZARR
+    SFN -.->|On Failure| SNS_FAIL
+
+    %% VPC Endpoints
+    ECS_Cluster -.->|Private| EP_S3
+    ECS_Cluster -.->|Private| EP_ECR
+    Lambda -.->|Private| EP_S3
+
+    %% Monitoring
+    ECS_Cluster -->|Logs| CW
+    Lambda -->|Logs| CW
+    CW -->|Trigger| ALARMS
+    ALARMS -->|Notify| SNS_ALARM
+
+    %% Container images
+    ECR -.->|Pull Images| ECS_Cluster
+
+    %% Styling
+    classDef storage fill:#7AA116,stroke:#5D7E13,color:#fff
+    classDef compute fill:#FF9900,stroke:#CC7A00,color:#fff
+    classDef network fill:#4B8BBE,stroke:#306998,color:#fff
+    classDef data fill:#C925D1,stroke:#9B1DAD,color:#fff
+    classDef monitor fill:#FF4F8B,stroke:#CC3F6F,color:#fff
+    classDef orchestration fill:#00A4A6,stroke:#008385,color:#fff
+
+    class S3_RAW,S3_COG,S3_ZARR,S3_STAC,S3_FRONT storage
+    class TS,TILES,DASK_SCHED,DASK_WORK,COG_TASK,ZARR_TASK,TRIGGER,STAC_CREATE,STAC_INDEX,COG_GEN,ZARR_CONV compute
+    class ALB,IGW,NAT,EP_S3,EP_ECR,EP_LOGS,EP_OS network
+    class REDIS,DYNAMO data
+    class CW,SNS_ALARM,SNS_FAIL,ALARMS monitor
+    class SFN orchestration
+```
+
+## Data Flow Description
+
+### Ingestion Pipeline
+1. Raw data uploaded to S3 Raw bucket
+2. S3 event triggers Lambda function
+3. Step Functions orchestrates the workflow:
+   - STAC Creator generates metadata
+   - COG Generator creates Cloud Optimized GeoTIFFs
+   - Zarr Converter creates Zarr format data
+4. STAC Indexer writes metadata to DynamoDB
+5. Failures are published to SNS topic
+
+### API Services
+1. Users access frontend via CloudFront CDN
+2. API requests route through ALB to ECS services
+3. Timeseries Service queries DynamoDB and S3 STAC
+4. Tiles Service serves raster tiles from COG/Zarr data
+5. Redis provides caching layer for performance
+
+### Processing Cluster
+1. Dask Scheduler coordinates distributed processing
+2. Dask Workers execute compute tasks
+3. Service Discovery enables worker-scheduler communication
+4. ECS tasks submit jobs for COG/Zarr generation
+
+### Monitoring
+1. All services log to CloudWatch
+2. CloudWatch Alarms monitor health metrics
+3. SNS topics notify on failures and threshold breaches
   ECS --- VPC
   Redis --- VPC
   S3 --- VPC
