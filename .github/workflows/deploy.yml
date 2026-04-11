@@ -19,10 +19,10 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Set up Python ${{ env.PYTHON_VERSION }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: 'pip'
@@ -38,7 +38,7 @@ jobs:
           PYTHONPATH=. pytest tests/ --cov=app --cov-report=xml --cov-report=term
       
       - name: Upload coverage report
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v6
         with:
           file: ./app/coverage.xml
           flags: unittests
@@ -59,10 +59,10 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -103,15 +103,20 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           persist-credentials: true
       
       - name: Install terraform-docs
         run: |
-          wget https://github.com/terraform-docs/terraform-docs/releases/download/v0.17.0/terraform-docs-v0.17.0-linux-amd64.tar.gz
-          tar -xzf terraform-docs-v0.17.0-linux-amd64.tar.gz
+          TERRAFORM_DOCS_VERSION="v0.22.0"
+          TERRAFORM_DOCS_ARCHIVE="terraform-docs-${TERRAFORM_DOCS_VERSION}-linux-amd64.tar.gz"
+          TERRAFORM_DOCS_BASE_URL="https://github.com/terraform-docs/terraform-docs/releases/download/${TERRAFORM_DOCS_VERSION}"
+          wget "${TERRAFORM_DOCS_BASE_URL}/${TERRAFORM_DOCS_ARCHIVE}"
+          wget "${TERRAFORM_DOCS_BASE_URL}/terraform-docs-${TERRAFORM_DOCS_VERSION}.sha256sum"
+          grep " ${TERRAFORM_DOCS_ARCHIVE}$" "terraform-docs-${TERRAFORM_DOCS_VERSION}.sha256sum" | sha256sum -c -
+          tar -xzf "${TERRAFORM_DOCS_ARCHIVE}"
           chmod +x terraform-docs
           sudo mv terraform-docs /usr/local/bin/
       
@@ -239,10 +244,10 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
