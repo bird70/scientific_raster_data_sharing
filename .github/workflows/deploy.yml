@@ -110,8 +110,13 @@ jobs:
       
       - name: Install terraform-docs
         run: |
-          wget https://github.com/terraform-docs/terraform-docs/releases/download/v0.22.0/terraform-docs-v0.22.0-linux-amd64.tar.gz
-          tar -xzf terraform-docs-v0.22.0-linux-amd64.tar.gz
+          TERRAFORM_DOCS_VERSION="v0.22.0"
+          TERRAFORM_DOCS_ARCHIVE="terraform-docs-${TERRAFORM_DOCS_VERSION}-linux-amd64.tar.gz"
+          TERRAFORM_DOCS_BASE_URL="https://github.com/terraform-docs/terraform-docs/releases/download/${TERRAFORM_DOCS_VERSION}"
+          wget "${TERRAFORM_DOCS_BASE_URL}/${TERRAFORM_DOCS_ARCHIVE}"
+          wget "${TERRAFORM_DOCS_BASE_URL}/terraform-docs-${TERRAFORM_DOCS_VERSION}.sha256sum"
+          grep " ${TERRAFORM_DOCS_ARCHIVE}$" "terraform-docs-${TERRAFORM_DOCS_VERSION}.sha256sum" | sha256sum -c -
+          tar -xzf "${TERRAFORM_DOCS_ARCHIVE}"
           chmod +x terraform-docs
           sudo mv terraform-docs /usr/local/bin/
       
