@@ -65,8 +65,9 @@ def get_variables():
 
         variables = get_available_variables()
         return {"variables": variables}
-    except Exception as e:
-        return {"variables": [], "error": str(e)}
+    except Exception:
+        logging.exception("Failed to get available variables")
+        return {"variables": [], "error": "An internal error has occurred."}
 
 
 @app.get("/")
