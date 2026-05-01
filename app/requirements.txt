@@ -26,7 +26,7 @@ stac-pydantic==3.1.1
 python-jose[cryptography]==3.4.0
 
 # Caching
-redis==5.2.1
+redis==7.4.0
 
 # Monitoring and Logging
 prometheus-client==0.21.0
