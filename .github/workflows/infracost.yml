@@ -24,7 +24,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Infracost
         uses: infracost/actions/setup@v3
@@ -33,7 +33,7 @@ jobs:
 
       - name: Checkout base branch
         if: github.event_name == 'pull_request'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: '${{ github.event.pull_request.base.ref }}'
 
@@ -46,7 +46,7 @@ jobs:
 
       - name: Checkout PR branch
         if: github.event_name == 'pull_request'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Generate Infracost diff
         if: github.event_name == 'pull_request'
